@@ -202,7 +202,7 @@ risk_dist
 ```{r covariate_checks}
 
 ggplot(pt_info, aes(x = age))+
-  geom_histogram(bins = 30, fill = lightgray)+
+  geom_histogram(bins = 30, aes(fill = Condition), alpha = 0.8)+
   labs(title = "Distribution of Participant Age",
        subtitle = "Age was relatively similar across conditions.",
        x = "Age",
@@ -223,7 +223,7 @@ ggplot(pt_info, aes(x = as.factor(gender)))+
        y = "Count")
 
 industry_dist <- ggplot(industry_df %>% top_n(10) , aes(x = factor(industry, levels = industry), y  = ct))+
-  geom_bar(stat = "identity", fill = lightgray)+
+  geom_bar(stat = "identity", aes(fill = Condition), alpha = 0.8)+
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
   labs(title = "Distribution of Participant Industry", 
        subtitle = paste0(
@@ -240,7 +240,7 @@ ggplot(pt_info, aes(x = factor(str_replace_all(company_size, " employees", ""),
                                           "100-500",
                                           "500-1,000",
                                           "1,000+"))))+
-  geom_bar(stat = "count", position = "dodge", aes(fill = Condition))+
+  geom_bar(stat = "count", position = "dodge", aes(fill = Condition), alpha = 0.8)+
   labs(title = "Distribution of Participant Company Size",
        subtitle = "Number of employees",
        x = "Company Size",
@@ -252,7 +252,7 @@ ggplot(pt_info, aes(x = factor(experience,
                                           "3-5 years",
                                           "5-10 years",
                                           "10+ years"))))+
-  geom_bar(stat = "count", aes(fill = Condition), position = "dodge")+
+  geom_bar(stat = "count", aes(fill = Condition), position = "dodge", alpha = 0.8)+
   labs(title = "Distribution of Participant Work Experience",
        subtitle = "",
        x = "Years of Experience",
@@ -260,7 +260,7 @@ ggplot(pt_info, aes(x = factor(experience,
 
 
 ggplot(pt_info, aes(x = risk))+
-  geom_bar(stat = "count",fill = lightgray)+
+  geom_bar(stat = "count", aes(fill = Condition), alpha = 0.8)+
   labs(title = "Distribution of Participant Risk Aversion",
        x = "Average Response to Risk Items",
        y = "Count")+
@@ -281,6 +281,8 @@ average_ratings <- analysis %>%
   group_by(Condition) %>% 
   summarise(avg_rating = mean(rating),
             standard_dev = sd(rating),
+            max = avg_rating+ standard_dev,
+            min = avg_rating - standard_dev,
             n = n())
 average_ratings
 
