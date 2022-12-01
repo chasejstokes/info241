@@ -360,11 +360,19 @@ ci_company
 
 ```
 
-```{r}
+```{r stargazer}
 
 stargazer(
-  simplest_model, improved_model, 
+  applicant_model, 
+  risk_model,
+  gender_model,
+  company_model, 
   type = 'text',
+  se = list(sqrt(diag(applicant_model$vcovHC_)),
+            sqrt(diag(risk_model$vcovHC_)),
+            sqrt(diag(gender_model$vcovHC_)),
+            sqrt(diag(company_model$vcovHC_))
+  )
 )
 
 
