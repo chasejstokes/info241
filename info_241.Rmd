@@ -126,15 +126,6 @@ gender_dist <- ggplot(pt_info, aes(x = as.factor(gender)))+
        y = "Count")
 gender_dist
 
-gender_condition_dist <- ggplot(pt_info, aes(x = as.factor(gender)))+
-  geom_bar(stat = "count", position= "dodge", aes(fill = Condition), alpha = 0.8)+
-  scale_x_discrete(limits = c("Man", "Woman", "Non-binary / third gender", "Prefer not to say"))+
-  labs(title = "Distribution of Participant Gender and Condition",
-       subtitle = "Conditions were relatively even across gender.",
-       x = "Reported Gender",
-       y = "Count")
-gender_condition_dist
-
 employment_dist <- ggplot(pt_info, aes(x = as.factor(employment)))+
   geom_bar(stat = "count", position= "dodge", fill = lightgray)+
   labs(title = "Distribution of Participant Employment Status", 
@@ -206,6 +197,80 @@ risk_dist
 
 ```
 
+### Covariate checks between conditions
+
+```{r covariate_checks}
+
+ggplot(pt_info, aes(x = age))+
+  geom_histogram(bins = 30, fill = lightgray)+
+  labs(title = "Distribution of Participant Age",
+       subtitle = "Age was relatively similar across conditions.",
+       x = "Age",
+       y = "Count")+
+  facet_grid(Condition ~ .)+
+  theme(strip.text.y = element_text(angle = 0))
+
+pt_info %>% 
+  group_by(Condition) %>% 
+  summarise(avg_age = mean(age))
+
+ggplot(pt_info, aes(x = as.factor(gender)))+
+  geom_bar(stat = "count", position= "dodge", aes(fill = Condition), alpha = 0.8)+
+  scale_x_discrete(limits = c("Man", "Woman", "Non-binary / third gender", "Prefer not to say"))+
+  labs(title = "Distribution of Participant Gender and Condition",
+       subtitle = "Gender was relatively similar across conditions.",
+       x = "Reported Gender",
+       y = "Count")
+
+industry_dist <- ggplot(industry_df %>% top_n(10) , aes(x = factor(industry, levels = industry), y  = ct))+
+  geom_bar(stat = "identity", fill = lightgray)+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  labs(title = "Distribution of Participant Industry", 
+       subtitle = paste0(
+         round(subset(industry_df, industry == "Technology")$ct / nrow(pt_info), 2) * 100,
+         "% of participants work in Tehcnology"
+       ),
+       x = "Industry Area",
+       y = "Count")
+
+
+ggplot(pt_info, aes(x = factor(str_replace_all(company_size, " employees", ""),
+                               levels = c("Less than 50",
+                                          "50-100",
+                                          "100-500",
+                                          "500-1,000",
+                                          "1,000+"))))+
+  geom_bar(stat = "count", position = "dodge", aes(fill = Condition))+
+  labs(title = "Distribution of Participant Company Size",
+       subtitle = "Number of employees",
+       x = "Company Size",
+       y = "Count")
+
+ggplot(pt_info, aes(x = factor(experience,
+                               levels = c("Less than 1 year",
+                                          "1-2 years",
+                                          "3-5 years",
+                                          "5-10 years",
+                                          "10+ years"))))+
+  geom_bar(stat = "count", aes(fill = Condition), position = "dodge")+
+  labs(title = "Distribution of Participant Work Experience",
+       subtitle = "",
+       x = "Years of Experience",
+       y = "Count")
+
+
+ggplot(pt_info, aes(x = risk))+
+  geom_bar(stat = "count",fill = lightgray)+
+  labs(title = "Distribution of Participant Risk Aversion",
+       x = "Average Response to Risk Items",
+       y = "Count")+
+  facet_grid(Condition ~.)+
+  theme(strip.text.y = element_text(angle = 0))
+
+```
+
+
+
 ## Summary Stats
 
 Here, we examine some basic information about how ratings for different applicants varied. 
@@ -235,7 +300,7 @@ ggplot(analysis, aes(x = rating))+
   geom_density(stat = "count",aes(fill = Condition), alpha = 0.5)+
   #geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Traditional")$rating), color = "orchid4")+
   #geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Traditional")$rating), color = "yellowgreen")+
- # geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Nontraditional")$rating), color = "deepskyblue", linewidth = 1.25)+
+  # geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Nontraditional")$rating), color = "deepskyblue", linewidth = 1.25)+
   #geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Nontraditional")$rating), color = "salmon")+
   labs(title = "Distribution of Participant Ratings by Condition",
        subtitle = "Vertical lines indicates average rating",
@@ -327,7 +392,7 @@ We add risk aversion scores to the model to capture individual differences in re
 ```{r adding participant gender}
 
 gender_model <- d[, lm(data = analysis, rating ~ applicant_gender * applicant_education + risk + 
-                        factor(gender, levels = c("Man", "Woman")))]
+                         factor(gender, levels = c("Man", "Woman")))]
 
 # test for heteroscedasticity to determine if use of robust standard errors is justified
 bptest(gender_model)
@@ -346,8 +411,8 @@ ci_gender
 ```{r adding company size}
 
 company_model <- d[, lm(data = analysis, rating ~ applicant_gender * applicant_education + risk + 
-                        factor(gender, levels = c("Man", "Woman"))+
-                        factor(company_size))]
+                          factor(gender, levels = c("Man", "Woman"))+
+                          factor(company_size))]
 
 # test for heteroscedasticity to determine if use of robust standard errors is justified
 bptest(company_model)
