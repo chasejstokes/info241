@@ -1,0 +1,373 @@
+---
+title: "INFO 241"
+author: "CS"
+date: "2022-11-09"
+output: html_document
+---
+
+```{r setup, echo = FALSE}
+
+library(sandwich)
+library(lmtest)
+library(broom)
+library(data.table)
+library(tidyverse)
+library(stargazer)
+
+# set theme for ggplot
+theme_set(theme_minimal())
+
+```
+
+
+```{r load and clean data, echo = FALSE}
+
+df <- read.csv("info241_raw.csv")
+df <- cbind(pt = 1:nrow(df), df)
+
+# update the scale column names
+cols_old <- colnames(df)
+cols_new <- str_replace_all(cols_old, 
+                            c(
+                              "m_nt" = "man_nontrad",
+                              "m_t" = "man_trad", 
+                              "w_nt" = "woman_nontrad",
+                              "w_t" = "woman_trad",
+                              "scale_12" = "scale_education",
+                              "scale_13" = "scale_experience",
+                              "scale_1" = "scale_technical",
+                              "scale_3" = "scale_leadership",
+                              "scale_4" = "scale_likeable",
+                              "scale_5" = "scale_learner")
+)
+colnames(df) <- cols_new
+
+df$risk <- rowMeans(df %>% select(contains("risk")))
+
+
+# make list of columns for participant information
+participant_columns <- c('pt', 'age', 'gender', 'gender_5_TEXT', 'employment', 'role', 'company_size', 'experience', 'roles', 'industry', 'industry_12_TEXT', "risk", "Condition")
+participant_columns_remove <- c('gender_5_TEXT', 'employment', 'role', 'experience', 'roles', 'industry', 'industry_12_TEXT')
+
+# make participant information df
+pt_info <- select(df, all_of(participant_columns))
+
+# make analysis df
+analysis <- df %>%
+  select(matches(c("man")))
+analysis <- cbind(pt = df$pt, analysis)
+
+
+# use gather to make long data from wide data
+analysis <- gather(df, source, rating, colnames(analysis %>% select(matches("man")) %>% select(-contains("scale"))))
+
+# split out the source columns
+analysis[c("applicant_gender", "applicant_education", "stimuli_number")] <- str_split_fixed(analysis$source, '_', 3)
+
+# remove rows with NA values
+analysis <- analysis %>% drop_na(rating) %>% 
+  select(-contains("aversion")) %>% 
+  select(-all_of(participant_columns_remove))
+
+# condense across scale ratings
+# create lists of columns to condense
+technical_scale_cols <- colnames(analysis %>% select(matches("scale_technical")))
+leadership_scale_cols <- colnames(analysis %>% select(matches("scale_leadership")))
+likeable_scale_cols <- colnames(analysis %>% select(matches("scale_likeable")))
+learner_scale_cols <- colnames(analysis %>% select(matches("scale_learner")))
+education_scale_cols <- colnames(analysis %>% select(matches("scale_education")))
+experience_scale_cols <- colnames(analysis %>% select(matches("scale_experience")))
+# condense and remove columns
+analysis <- analysis %>%
+  mutate(technical_scale = invoke(coalesce, across(all_of(technical_scale_cols))),
+         leadership_scale = invoke(coalesce, across(all_of(leadership_scale_cols))),
+         likeable_scale = invoke(coalesce, across(all_of(likeable_scale_cols))),
+         learner_scale = invoke(coalesce, across(all_of(learner_scale_cols))),
+         education_scale = invoke(coalesce, across(all_of(education_scale_cols))),
+         experience_scale = invoke(coalesce, across(all_of(experience_scale_cols)))) %>% 
+  select(technical_scale, leadership_scale, likeable_scale, learner_scale, education_scale, experience_scale, 
+         colnames(analysis)[! colnames(analysis) %in% c(technical_scale_cols, leadership_scale_cols,
+                                                        likeable_scale_cols, learner_scale_cols, education_scale_cols,
+                                                        experience_scale_cols)])
+
+# create reference condition for analyses
+analysis$Condition <- relevel(factor(analysis$Condition), ref = "Man_Traditional")
+analysis$applicant_gender <- relevel(factor(analysis$applicant_gender), ref = "man")
+analysis$applicant_education <- relevel(factor(analysis$applicant_education), ref = "trad")
+
+```
+
+## Participant Information 
+
+Here, we examine participant demographics, such as their age and gender, in addition to information about their work industry and experience. Overall, our sample is highly skewed in terms of gender. A representative average participant would be a man who works in a relatively large technology company with some years of experience. 
+
+```{r descriptive_information, echo = FALSE}
+
+lightgray <- "#c5c5c5"
+darkgray <- "#555555"
+
+age_dist <- ggplot(pt_info, aes(x = age))+
+  geom_histogram(fill = lightgray)+
+  geom_vline(aes(xintercept = mean(age)), color = darkgray)+
+  labs(title = "Distribution of Participant Age",
+       subtitle = paste0("Average age is about ", round(mean(pt_info$age), 0)),
+       x = "Age",
+       y = "Count")
+age_dist
+
+gender_dist <- ggplot(pt_info, aes(x = as.factor(gender)))+
+  geom_bar(stat = "count", position= "dodge", fill = lightgray)+
+  scale_x_discrete(limits = c("Man", "Woman", "Non-binary / third gender", "Prefer not to say"))+
+  labs(title = "Distribution of Participant Gender",
+       subtitle = paste0("Sample was about ", 
+                         round(nrow(subset(pt_info, gender == "Man"))/nrow(pt_info), 2) * 100,
+                         "% Men"),
+       x = "Reported Gender",
+       y = "Count")
+gender_dist
+
+gender_condition_dist <- ggplot(pt_info, aes(x = as.factor(gender)))+
+  geom_bar(stat = "count", position= "dodge", aes(fill = Condition), alpha = 0.8)+
+  scale_x_discrete(limits = c("Man", "Woman", "Non-binary / third gender", "Prefer not to say"))+
+  labs(title = "Distribution of Participant Gender and Condition",
+       subtitle = "Conditions were relatively even across gender.",
+       x = "Reported Gender",
+       y = "Count")
+gender_condition_dist
+
+employment_dist <- ggplot(pt_info, aes(x = as.factor(employment)))+
+  geom_bar(stat = "count", position= "dodge", fill = lightgray)+
+  labs(title = "Distribution of Participant Employment Status", 
+       subtitle = paste0(
+         round(
+           nrow(subset(pt_info, employment == "Employed full time"))/nrow(pt_info), 
+           2) * 100,
+         "% of respondents were employed full time; this was our aim."),
+       x = "Employment Status",
+       y = "Count")
+employment_dist
+
+industry_df <- pt_info %>% 
+  mutate(across('industry', str_replace_all, c('Transportation, utilities, or wholesale' = 'Transportation utilities or wholesale',
+                                               "Agriculture, mining, or construction" = "Agriculture mining or construction"))) %>% 
+  unnest(industry) %>% 
+  mutate(industry = strsplit(industry, ",")) %>%
+  unnest(industry )%>% 
+  group_by(industry) %>% 
+  summarise(ct = n()) %>% 
+  arrange(desc(ct)) 
+industry_dist <- ggplot(industry_df %>% top_n(10) , aes(x = factor(industry, levels = industry), y  = ct))+
+  geom_bar(stat = "identity", fill = lightgray)+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  labs(title = "Distribution of Participant Industry", 
+       subtitle = paste0(
+         round(subset(industry_df, industry == "Technology")$ct / nrow(pt_info), 2) * 100,
+         "% of participants work in Tehcnology"
+       ),
+       x = "Industry Area",
+       y = "Count")
+industry_dist
+
+
+size_dist <- ggplot(pt_info, aes(x = factor(str_replace_all(company_size, " employees", ""),
+                                            levels = c("Less than 50",
+                                                       "50-100",
+                                                       "100-500",
+                                                       "500-1,000",
+                                                       "1,000+"))))+
+  geom_bar(stat = "count", fill = lightgray)+
+  labs(title = "Distribution of Participant Company Size",
+       subtitle = "Number of employees",
+       x = "Company Size",
+       y = "Count")
+size_dist
+
+experience_dist <- ggplot(pt_info, aes(x = factor(experience,
+                                                  levels = c("Less than 1 year",
+                                                             "1-2 years",
+                                                             "3-5 years",
+                                                             "5-10 years",
+                                                             "10+ years"))))+
+  geom_bar(stat = "count", fill = lightgray)+
+  labs(title = "Distribution of Participant Work Experience",
+       subtitle = "",
+       x = "Years of Experience",
+       y = "Count")
+experience_dist
+
+risk_dist <- ggplot(pt_info, aes(x = risk))+
+  geom_bar(stat = "count", fill = lightgray)+
+  geom_vline(aes(xintercept = mean(risk)), color = darkgray)+
+  labs(title = "Distribution of Participant Risk Aversion",
+       subtitle = paste0("Average risk score is about ", round(mean(pt_info$risk), 2)),
+       x = "Average Response to Risk Items",
+       y = "Count")
+risk_dist
+
+```
+
+## Summary Stats
+
+Here, we examine some basic information about how ratings for different applicants varied. 
+
+```{r, summary stats}
+
+average_ratings <- analysis %>% 
+  group_by(Condition) %>% 
+  summarise(avg_rating = mean(rating),
+            standard_dev = sd(rating),
+            n = n())
+average_ratings
+
+gender_ratings <- analysis %>% 
+  group_by(applicant_gender) %>% 
+  summarise(avg_rating = mean(rating),
+            standard_dev = sd(rating))
+gender_ratings
+
+education_ratings <- analysis %>% 
+  group_by(applicant_education) %>% 
+  summarise(avg_rating = mean(rating),
+            standard_dev = sd(rating))
+education_ratings
+
+ggplot(analysis, aes(x = rating))+
+  geom_density(stat = "count",aes(fill = Condition), alpha = 0.5)+
+  #geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Traditional")$rating), color = "orchid4")+
+  #geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Traditional")$rating), color = "yellowgreen")+
+ # geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Nontraditional")$rating), color = "deepskyblue", linewidth = 1.25)+
+  #geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Nontraditional")$rating), color = "salmon")+
+  labs(title = "Distribution of Participant Ratings by Condition",
+       subtitle = "Vertical lines indicates average rating",
+       x = "Rating",
+       y = "Count")
+
+```
+## Testing
+
+```{r data table}
+
+d <- data.table(analysis)
+
+```
+
+
+### No Covariates - Baseline Model
+
+```{r testing without covariates}
+
+## anova testing
+summary(d[, aov(rating ~ Condition)])
+
+## follow-up t-tests, holm correction
+d[, pairwise.t.test(rating, Condition, p.adjust.method = "bonferroni")]
+
+## linear model
+condition_model <- d[, lm(rating ~ Condition)]
+
+# test for heteroscedasticity to determine if use of robust standard errors is justified
+par(mfrow = c(2, 2))
+plot(condition_model)
+bptest(condition_model)
+
+condition_model$vcovHC_ <- vcovHC(condition_model)
+coefs_conditions <- coeftest(condition_model, vcov. = condition_model$vcovHC_)
+coefs_conditions
+ci_conditions <- coefci(condition_model, vcov. = condition_model$vcovHC_)
+ci_conditions
+
+```
+
+Based on the previous tests, we can detect that there *are* significant differences between conditions. This result is shown in the `ANOVA` test, for which post hoc testing indicates differences between the `Woman_Traditional` condition and the conditions `Man_Nontraditional` and `Woman_Nontraditional`. We follow this testing with linear models to more clearly capture the quantitative differences between ratings. 
+
+Specifically, the baseline candidate received a rating, on average of `r round(coefs_conditions[1], 2)` (`r round(ci_conditions, 2)[1,]`). In comparison, men with a nontraditional education were rated lower, by an average of `r round(coefs_conditions[2], 2)` (`r round(ci_conditions, 2)[2,]`). Women with a nontraditional education were also reated lower than men with a traditional education, by an average of `r round(coefs_conditions[3], 2)` (`r round(ci_conditions, 2)[3,]`). Finally, women with a traditional education were actually rated *higher* than men with a traditional education, by an average of `r round(coefs_conditions[4], 2)` (`r round(ci_conditions, 2)[4,]`).
+
+### Applicant Attributes
+
+The previous analysis focused specifically on the conditions shown. we are also interested in the qualities of these conditions, such as the `applicant_gender` & `applicant_education` variables. This will give us a clearer statistical understanding of the input of each quality of the applicant. At this point forward, we use linear models, rather than ANOVA and t-testing. This is to make the content more consistent with the techniques learned in the course.
+
+```{r attributes}
+
+applicant_model <- d[, lm(rating ~ applicant_gender * applicant_education)]
+
+# test for heteroscedasticity to determine if use of robust standard errors is justified
+par(mfrow = c(2, 2))
+plot(applicant_model)
+bptest(applicant_model)
+
+applicant_model$vcovHC_ <- vcovHC(applicant_model)
+coefs_applicants <- coeftest(applicant_model, vcov. = applicant_model$vcovHC_)
+coefs_applicants
+ci_applicants <- coefci(applicant_model, vcov. = applicant_model$vcovHC_)
+ci_applicants
+
+```
+In this case, we observe a significant effect of gender overall, but in the opposite direction which we expected. Women, on average, receive a higher rating than men (`r coefs_applicants[2,1]` higher, p = `r coefs_applicants[2, 4]`). We also see a slight effect of education (p = `r coefs_applicants[3,4]`). Specifically, the applicants with a nontraditional education background are rated `r coefs_applicants[3,1]` lower than those with traditional educations. There is no interaction effect observed (p = `r coefs_applicants[4, 4]`).
+
+### Add Risk Aversion
+
+```{r adding risk aversion}
+
+risk_model <- d[, lm(data = analysis, rating ~ applicant_gender * applicant_education + risk)]
+
+# test for heteroscedasticity to determine if use of robust standard errors is justified
+bptest(risk_model)
+
+risk_model$vcovHC_ <- vcovHC(risk_model)
+coefs_risk <- coeftest(risk_model, vcov. = risk_model$vcovHC_)
+coefs_risk
+ci_risk <- coefci(risk_model, vcov. = risk_model$vcovHC_)
+ci_risk
+
+```
+We add risk aversion scores to the model to capture individual differences in regards to the amount of risk one may be confortable taking on. It does not change the estimations from the previous model.
+
+### Add Participant Gender
+
+```{r adding participant gender}
+
+gender_model <- d[, lm(data = analysis, rating ~ applicant_gender * applicant_education + risk + 
+                        factor(gender, levels = c("Man", "Woman")))]
+
+# test for heteroscedasticity to determine if use of robust standard errors is justified
+bptest(gender_model)
+
+gender_model$vcovHC_ <- vcovHC(gender_model)
+coefs_gender <- coeftest(gender_model, vcov. = gender_model$vcovHC_)
+coefs_gender
+ci_gender <- coefci(gender_model, vcov. = gender_model$vcovHC_)
+ci_gender
+
+```
+
+
+### Add Company Size
+
+```{r adding company size}
+
+company_model <- d[, lm(data = analysis, rating ~ applicant_gender * applicant_education + risk + 
+                        factor(gender, levels = c("Man", "Woman"))+
+                        factor(company_size))]
+
+# test for heteroscedasticity to determine if use of robust standard errors is justified
+bptest(company_model)
+
+company_model$vcovHC_ <- vcovHC(company_model)
+coefs_company <- coeftest(company_model, vcov. = company_model$vcovHC_)
+coefs_company
+ci_company <- coefci(company_model, vcov. = company_model$vcovHC_)
+ci_company
+
+```
+
+```{r}
+
+stargazer(
+  simplest_model, improved_model, 
+  type = 'text',
+)
+
+
+```
+
+
