@@ -57,7 +57,6 @@ analysis <- df %>%
   select(matches(c("man")))
 analysis <- cbind(pt = df$pt, analysis)
 
-
 # use gather to make long data from wide data
 analysis <- gather(df, source, rating, colnames(analysis %>% select(matches("man")) %>% select(-contains("scale"))))
 
@@ -79,16 +78,44 @@ education_scale_cols <- colnames(analysis %>% select(matches("scale_education"))
 experience_scale_cols <- colnames(analysis %>% select(matches("scale_experience")))
 # condense and remove columns
 analysis <- analysis %>%
-  mutate(technical_scale = invoke(coalesce, across(all_of(technical_scale_cols))),
-         leadership_scale = invoke(coalesce, across(all_of(leadership_scale_cols))),
-         likeable_scale = invoke(coalesce, across(all_of(likeable_scale_cols))),
-         learner_scale = invoke(coalesce, across(all_of(learner_scale_cols))),
-         education_scale = invoke(coalesce, across(all_of(education_scale_cols))),
-         experience_scale = invoke(coalesce, across(all_of(experience_scale_cols)))) %>% 
+  mutate(technical_scale = str_remove_all(str_remove_all(do.call(paste, c(analysis[technical_scale_cols], sep = ",")), "NA,"), ",NA"),
+         leadership_scale = str_remove_all(str_remove_all(do.call(paste, c(analysis[leadership_scale_cols], sep = ",")), "NA,"), ",NA"),
+         likeable_scale = str_remove_all(str_remove_all(do.call(paste, c(analysis[likeable_scale_cols], sep = ",")), "NA,"), ",NA"),
+         learner_scale = str_remove_all(str_remove_all(do.call(paste, c(analysis[learner_scale_cols], sep = ",")), "NA,"), ",NA"),
+         education_scale = str_remove_all(str_remove_all(do.call(paste, c(analysis[education_scale_cols], sep = ",")), "NA,"), ",NA"),
+         experience_scale = str_remove_all(str_remove_all(do.call(paste, c(analysis[experience_scale_cols], sep = ",")), "NA,"), ",NA")) %>% 
   select(technical_scale, leadership_scale, likeable_scale, learner_scale, education_scale, experience_scale, 
          colnames(analysis)[! colnames(analysis) %in% c(technical_scale_cols, leadership_scale_cols,
                                                         likeable_scale_cols, learner_scale_cols, education_scale_cols,
-                                                        experience_scale_cols)])
+                                                        experience_scale_cols, "stimuli_number", "source")])
+
+# move into separate rows and remove duplicates
+analysis <- analysis %>% 
+  mutate(technical_scale = strsplit(technical_scale, ","),
+         leadership_scale = strsplit(leadership_scale, ","),
+         likeable_scale = strsplit(likeable_scale, ","),
+         learner_scale = strsplit(learner_scale, ","),
+         education_scale = strsplit(education_scale, ","),
+         experience_scale = strsplit(experience_scale, ",")
+  ) %>% 
+  unnest(c(technical_scale,
+         leadership_scale,
+         likeable_scale,
+         learner_scale,
+         education_scale,
+         experience_scale)
+  )%>% 
+  distinct()
+
+# make scales numeric
+analysis <- analysis %>% 
+  mutate(technical_scale = as.numeric(unlist(technical_scale)),
+         leadership_scale = as.numeric(unlist(leadership_scale)),
+         likeable_scale = as.numeric(unlist(likeable_scale)),
+         learner_scale = as.numeric(unlist(learner_scale)),
+         education_scale = as.numeric(unlist(education_scale)),
+         experience_scale = as.numeric(unlist(experience_scale))
+  )
 
 # create reference condition for analyses
 analysis$Condition <- relevel(factor(analysis$Condition), ref = "Man_Traditional")
@@ -305,11 +332,77 @@ ggplot(analysis, aes(x = rating))+
   # geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Nontraditional")$rating), color = "deepskyblue", linewidth = 1.25)+
   #geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Nontraditional")$rating), color = "salmon")+
   labs(title = "Distribution of Participant Ratings by Condition",
-       subtitle = "Vertical lines indicates average rating",
+       #       subtitle = "Vertical lines indicates average rating",
        x = "Rating",
        y = "Count")
 
 ```
+
+```{r scale_summaries}
+
+## technical scale
+analysis %>%
+  group_by(Condition) %>% 
+  summarise(mean_technical= mean(technical_scale))
+ggplot(analysis, aes(x = technical_scale))+
+  geom_density(stat = "count",aes(fill = Condition), alpha = 0.5)+
+  labs(title = "Distribution of Technical Scale Ratings by Condition",
+       x = "Rating",
+       y = "Count")
+
+## leadership scale
+analysis %>%
+  group_by(Condition) %>% 
+  summarise(mean_leadership= mean(leadership_scale))
+ggplot(analysis, aes(x = leadership_scale))+
+  geom_density(stat = "count",aes(fill = Condition), alpha = 0.5)+
+  labs(title = "Distribution of Leadership Scale Ratings by Condition",
+       x = "Rating",
+       y = "Count")
+
+
+## likeable scale
+analysis %>%
+  group_by(Condition) %>% 
+  summarise(mean_likeable = mean(likeable_scale))
+ggplot(analysis, aes(x = likeable_scale))+
+  geom_density(stat = "count",aes(fill = Condition), alpha = 0.5)+
+  labs(title = "Distribution of Likeable Scale Ratings by Condition",
+       x = "Rating",
+       y = "Count")
+
+## learner scale
+analysis %>%
+  group_by(Condition) %>% 
+  summarise(mean_learner = mean(learner_scale))
+ggplot(analysis, aes(x = learner_scale))+
+  geom_density(stat = "count",aes(fill = Condition), alpha = 0.5)+
+  labs(title = "Distribution of Learner Scale Ratings by Condition",
+       x = "Rating",
+       y = "Count")
+
+## education scale
+analysis %>%
+  group_by(Condition) %>% 
+  summarise(mean_education = mean(education_scale))
+ggplot(analysis, aes(x = education_scale))+
+  geom_density(stat = "count",aes(fill = Condition), alpha = 0.5)+
+  labs(title = "Distribution of Education Scale Ratings by Condition",
+       x = "Rating",
+       y = "Count")
+
+## experience scale
+analysis %>%
+  group_by(Condition) %>% 
+  summarise(mean_experience= mean(experience_scale))
+ggplot(analysis, aes(x = experience_scale))+
+  geom_density(stat = "count",aes(fill = Condition), alpha = 0.5)+
+  labs(title = "Distribution of Experience Scale Ratings by Condition",
+       x = "Rating",
+       y = "Count")
+
+```
+
 ## Testing
 
 ```{r data table}
@@ -426,6 +519,33 @@ ci_company <- coefci(company_model, vcov. = company_model$vcovHC_)
 ci_company
 
 ```
+
+
+### Add Scale Measures
+
+```{r adding company size}
+
+measures_model <- d[, lm(data = analysis, rating ~ applicant_gender * applicant_education + risk + 
+                           factor(gender, levels = c("Man", "Woman"))+
+                           factor(company_size) +
+                           technical_scale +
+                           leadership_scale +
+                           likeable_scale +
+                           learner_scale +
+                           education_scale +
+                           experience_scale)]
+
+# test for heteroscedasticity to determine if use of robust standard errors is justified
+bptest(measures_model)
+
+measures_model$vcovHC_ <- vcovHC(measures_model)
+coefs_measures <- coeftest(measures_model, vcov. = measures_model$vcovHC_)
+coefs_measures
+ci_measures <- coefci(measures_model, vcov. = measures_model$vcovHC_)
+ci_measures
+
+```
+
 
 ```{r stargazer}
 
