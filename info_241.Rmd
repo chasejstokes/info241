@@ -87,7 +87,7 @@ analysis <- analysis %>%
   select(technical_scale, leadership_scale, likeable_scale, learner_scale, education_scale, experience_scale, 
          colnames(analysis)[! colnames(analysis) %in% c(technical_scale_cols, leadership_scale_cols,
                                                         likeable_scale_cols, learner_scale_cols, education_scale_cols,
-                                                        experience_scale_cols, "stimuli_number", "source")])
+                                                        experience_scale_cols, "stimuli_number", "source", "Iteration")])
 
 # move into separate rows and remove duplicates
 analysis <- analysis %>% 
@@ -99,11 +99,11 @@ analysis <- analysis %>%
          experience_scale = strsplit(experience_scale, ",")
   ) %>% 
   unnest(c(technical_scale,
-         leadership_scale,
-         likeable_scale,
-         learner_scale,
-         education_scale,
-         experience_scale)
+           leadership_scale,
+           likeable_scale,
+           learner_scale,
+           education_scale,
+           experience_scale)
   )%>% 
   distinct()
 
@@ -423,17 +423,17 @@ summary(d[, aov(rating ~ Condition)])
 d[, pairwise.t.test(rating, Condition, p.adjust.method = "bonferroni")]
 
 ## linear model
-condition_model <- d[, lm(rating ~ Condition)]
+m0 <- d[, lm(rating ~ Condition)]
 
 # test for heteroscedasticity to determine if use of robust standard errors is justified
 par(mfrow = c(2, 2))
-plot(condition_model)
-bptest(condition_model)
+plot(m0)
+bptest(m0)
 
-condition_model$vcovHC_ <- vcovHC(condition_model)
-coefs_conditions <- coeftest(condition_model, vcov. = condition_model$vcovHC_)
+m0$vcovHC_ <- vcovHC(m0)
+coefs_conditions <- coeftest(m0, vcov. = m0$vcovHC_)
 coefs_conditions
-ci_conditions <- coefci(condition_model, vcov. = condition_model$vcovHC_)
+ci_conditions <- coefci(m0, vcov. = m0$vcovHC_)
 ci_conditions
 
 ```
@@ -448,17 +448,17 @@ The previous analysis focused specifically on the conditions shown. we are also 
 
 ```{r attributes}
 
-applicant_model <- d[, lm(rating ~ applicant_gender * applicant_education)]
+m1 <- d[, lm(rating ~ applicant_gender * applicant_education)]
 
 # test for heteroscedasticity to determine if use of robust standard errors is justified
 par(mfrow = c(2, 2))
-plot(applicant_model)
-bptest(applicant_model)
+plot(m1)
+bptest(m1)
 
-applicant_model$vcovHC_ <- vcovHC(applicant_model)
-coefs_applicants <- coeftest(applicant_model, vcov. = applicant_model$vcovHC_)
+m1$vcovHC_ <- vcovHC(m1)
+coefs_applicants <- coeftest(m1, vcov. = m1$vcovHC_)
 coefs_applicants
-ci_applicants <- coefci(applicant_model, vcov. = applicant_model$vcovHC_)
+ci_applicants <- coefci(m1, vcov. = m1$vcovHC_)
 ci_applicants
 
 ```
@@ -468,15 +468,15 @@ In this case, we observe a significant effect of gender overall, but in the oppo
 
 ```{r adding risk aversion}
 
-risk_model <- d[, lm(data = analysis, rating ~ applicant_gender * applicant_education + risk)]
+m2 <- d[, lm(data = analysis, rating ~ applicant_gender * applicant_education + risk)]
 
 # test for heteroscedasticity to determine if use of robust standard errors is justified
-bptest(risk_model)
+bptest(m2)
 
-risk_model$vcovHC_ <- vcovHC(risk_model)
-coefs_risk <- coeftest(risk_model, vcov. = risk_model$vcovHC_)
+m2$vcovHC_ <- vcovHC(m2)
+coefs_risk <- coeftest(m2, vcov. = m2$vcovHC_)
 coefs_risk
-ci_risk <- coefci(risk_model, vcov. = risk_model$vcovHC_)
+ci_risk <- coefci(m2, vcov. = m2$vcovHC_)
 ci_risk
 
 ```
@@ -486,16 +486,16 @@ We add risk aversion scores to the model to capture individual differences in re
 
 ```{r adding participant gender}
 
-gender_model <- d[, lm(data = analysis, rating ~ applicant_gender * applicant_education + risk + 
+m3 <- d[, lm(data = analysis, rating ~ applicant_gender * applicant_education + risk + 
                          factor(gender, levels = c("Man", "Woman")))]
 
 # test for heteroscedasticity to determine if use of robust standard errors is justified
-bptest(gender_model)
+bptest(m3)
 
-gender_model$vcovHC_ <- vcovHC(gender_model)
-coefs_gender <- coeftest(gender_model, vcov. = gender_model$vcovHC_)
+m3$vcovHC_ <- vcovHC(m3)
+coefs_gender <- coeftest(m3, vcov. = m3$vcovHC_)
 coefs_gender
-ci_gender <- coefci(gender_model, vcov. = gender_model$vcovHC_)
+ci_gender <- coefci(m3, vcov. = m3$vcovHC_)
 ci_gender
 
 ```
@@ -505,17 +505,17 @@ ci_gender
 
 ```{r adding company size}
 
-company_model <- d[, lm(data = analysis, rating ~ applicant_gender * applicant_education + risk + 
+m4 <- d[, lm(data = analysis, rating ~ applicant_gender * applicant_education + risk + 
                           factor(gender, levels = c("Man", "Woman"))+
                           factor(company_size))]
 
 # test for heteroscedasticity to determine if use of robust standard errors is justified
-bptest(company_model)
+bptest(m4)
 
-company_model$vcovHC_ <- vcovHC(company_model)
-coefs_company <- coeftest(company_model, vcov. = company_model$vcovHC_)
+m4$vcovHC_ <- vcovHC(m4)
+coefs_company <- coeftest(m4, vcov. = m4$vcovHC_)
 coefs_company
-ci_company <- coefci(company_model, vcov. = company_model$vcovHC_)
+ci_company <- coefci(m4, vcov. = m4$vcovHC_)
 ci_company
 
 ```
@@ -523,9 +523,9 @@ ci_company
 
 ### Add Scale Measures
 
-```{r adding company size}
+```{r adding scale measures}
 
-measures_model <- d[, lm(data = analysis, rating ~ applicant_gender * applicant_education + risk + 
+m5 <- d[, lm(data = analysis, rating ~ applicant_gender * applicant_education + risk + 
                            factor(gender, levels = c("Man", "Woman"))+
                            factor(company_size) +
                            technical_scale +
@@ -536,12 +536,12 @@ measures_model <- d[, lm(data = analysis, rating ~ applicant_gender * applicant_
                            experience_scale)]
 
 # test for heteroscedasticity to determine if use of robust standard errors is justified
-bptest(measures_model)
+bptest(m5)
 
-measures_model$vcovHC_ <- vcovHC(measures_model)
-coefs_measures <- coeftest(measures_model, vcov. = measures_model$vcovHC_)
+m5$vcovHC_ <- vcovHC(m5)
+coefs_measures <- coeftest(m5, vcov. = m5$vcovHC_)
 coefs_measures
-ci_measures <- coefci(measures_model, vcov. = measures_model$vcovHC_)
+ci_measures <- coefci(m5, vcov. = m5$vcovHC_)
 ci_measures
 
 ```
@@ -550,15 +550,17 @@ ci_measures
 ```{r stargazer}
 
 stargazer(
-  applicant_model, 
-  risk_model,
-  gender_model,
-  company_model, 
+  m1, 
+  m2,
+  m3,
+  m4,
+  m5,
   type = 'text',
-  se = list(sqrt(diag(applicant_model$vcovHC_)),
-            sqrt(diag(risk_model$vcovHC_)),
-            sqrt(diag(gender_model$vcovHC_)),
-            sqrt(diag(company_model$vcovHC_))
+  se = list(sqrt(diag(m1$vcovHC_)),
+            sqrt(diag(m2$vcovHC_)),
+            sqrt(diag(m3$vcovHC_)),
+            sqrt(diag(m4$vcovHC_)),
+            sqrt(diag(m5$vcovHC_))
   )
 )
 
