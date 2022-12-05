@@ -540,8 +540,7 @@ We add risk aversion scores to the model to capture individual differences in re
 
 ```{r adding participant gender}
 
-m3 <- d[, lm(data = analysis, rating ~ applicant_gender * applicant_education + risk + 
-               factor(gender, levels = c("Man", "Woman")))]
+m3 <- d[, lm(data = analysis, rating ~ applicant_gender * applicant_education + risk + applicant_gender * factor(gender, levels = c("Man", "Woman")))]
 
 # test for heteroscedasticity to determine if use of robust standard errors is justified
 par(mfrow = c(2, 2))
@@ -562,7 +561,7 @@ ci_gender
 ```{r adding company size}
 
 m4 <- d[, lm(data = analysis, rating ~ applicant_gender * applicant_education + risk + 
-               factor(gender, levels = c("Man", "Woman"))+
+               applicant_gender * factor(gender, levels = c("Man", "Woman"))+
                factor(company_size))]
 
 # test for heteroscedasticity to determine if use of robust standard errors is justified
@@ -584,7 +583,7 @@ ci_company
 ```{r adding scale measures}
 
 m5 <- d[, lm(data = analysis, rating ~ applicant_gender * applicant_education + risk + 
-               factor(gender, levels = c("Man", "Woman"))+
+               applicant_gender * factor(gender, levels = c("Man", "Woman"))+
                factor(company_size) +
                technical_scale +
                leadership_scale +
@@ -634,35 +633,44 @@ stargazer(
 
 ```{r scale_comparisons}
 
-ggplot(analysis, aes(y = technical_scale, x = applicant_education))+
+ggplot(subset(analysis, gender == "Man" | gender == "Woman"), aes(y = technical_scale, x = applicant_education))+
   geom_jitter(aes(color = Condition), alpha = 0.8)+
-  geom_boxplot(alpha = 0.8, aes(fill = Condition))+
+  geom_violin(alpha = 0.8, aes(fill = Condition))+
   scale_x_discrete(labels = c("Traditional", "Non-Traditional"))+
   labs(title = "Comparison of Technical Ratings between Conditions",
-       subtitle = "Grouped by Education",
+       subtitle = "Grouped by Education & Participant Gender",
        y = "Technical Scale Rating\n",
        x = "\nApplicant Education")+
-  theme(legend.position = "none")
+  theme(legend.position = "none")+
+  facet_grid(~ gender)
 
-ggplot(analysis, aes(y = education_scale, x = applicant_education))+
+ggplot(subset(analysis, gender == "Man" | gender == "Woman"), aes(y = education_scale, x = applicant_education))+
   geom_jitter(aes(color = Condition), alpha = 0.8)+
   geom_boxplot(alpha = 0.8, aes(fill = Condition))+
   scale_x_discrete(labels = c("Traditional", "Non-Traditional"))+
   labs(title = "Comparison of Relevant Education Ratings between Conditions",
-       subtitle = "Grouped by Education",
+       subtitle = "Grouped by Education & Participant Gender",
        y = "Education Scale Rating\n",
        x = "\nApplicant Education")+
-  theme(legend.position = "none")
+  theme(legend.position = "none")+
+  facet_grid(~ gender)
 
-ggplot(analysis, aes(y = experience_scale, x = applicant_gender))+
+ggplot(subset(analysis, gender == "Man" | gender == "Woman"), aes(y = experience_scale, x = applicant_gender))+
   geom_jitter(aes(color = Condition), alpha = 0.8)+
   geom_boxplot(alpha = 0.8, aes(fill = Condition))+
   scale_x_discrete(labels = c("Man", "Woman"))+
   labs(title = "Comparison of Relevant Experience Ratings between Conditions",
-       subtitle = "Grouped by Gender",
+       subtitle = "Grouped by Gender & Participant Gender",
        y = "Experience Scale Rating\n",
        x = "\nApplicant Gender")+
-  theme(legend.position = "none")
+  theme(legend.position = "none")+
+  facet_grid(~ gender)
+
+ggplot(subset(analysis, gender == "Man" | gender == "Woman"), aes(y = rating, x = applicant_gender))+
+  geom_jitter(aes(color = gender), alpha = 0.8)+
+  geom_boxplot(alpha = 0.8, aes(fill = gender))+
+  facet_grid(.~ gender)
+
 
 ```
 
