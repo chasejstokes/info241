@@ -563,7 +563,7 @@ The previous analysis focused specifically on the conditions shown. we are also 
 
 ```{r attributes}
 
-m1 <- d[, lm(rating ~ applicant_gender * applicant_education)]
+m1 <- d[gender == "Man" | gender == "Woman", lm(rating ~ applicant_gender * applicant_education)]
 
 # test for heteroscedasticity to determine if use of robust standard errors is justified
 par(mfrow = c(2, 2))
@@ -583,7 +583,7 @@ In this case, we observe a significant effect of gender overall, but in the oppo
 
 ```{r adding risk aversion}
 
-m2 <- d[, lm(data = analysis, rating ~ applicant_gender * applicant_education + risk)]
+m2 <- d[gender == "Man" | gender == "Woman", lm(rating ~ applicant_gender * applicant_education + risk)]
 
 # test for heteroscedasticity to determine if use of robust standard errors is justified
 par(mfrow = c(2, 2))
@@ -603,7 +603,7 @@ We add risk aversion scores to the model to capture individual differences in re
 
 ```{r adding participant gender}
 
-m3 <- d[, lm(data = analysis, rating ~ applicant_gender * applicant_education + risk + applicant_gender * factor(gender, levels = c("Man", "Woman")))]
+m3 <- d[, lm(rating ~ applicant_gender * applicant_education + risk + applicant_gender * factor(gender, levels = c("Man", "Woman")))]
 
 # test for heteroscedasticity to determine if use of robust standard errors is justified
 par(mfrow = c(2, 2))
@@ -623,7 +623,7 @@ ci_gender
 
 ```{r adding company size}
 
-m4 <- d[, lm(data = analysis, rating ~ applicant_gender * applicant_education + risk + 
+m4 <- d[, lm(rating ~ applicant_gender * applicant_education + risk + 
                applicant_gender * factor(gender, levels = c("Man", "Woman"))+
                factor(company_size))]
 
@@ -645,7 +645,7 @@ ci_company
 
 ```{r adding scale measures}
 
-m5 <- d[, lm(data = analysis, rating ~ applicant_gender * applicant_education + risk + 
+m5 <- d[, lm(rating ~ applicant_gender * applicant_education + risk + 
                applicant_gender * factor(gender, levels = c("Man", "Woman"))+
                factor(company_size) +
                technical_scale +
@@ -669,6 +669,13 @@ ci_measures
 ```
 
 ### Model Comparison
+
+```{r anova}
+
+anova(m1, m2, m3, m4, m5)
+
+```
+
 
 ```{r stargazer}
 
