@@ -283,6 +283,8 @@ ggplot(pt_info, aes(x = factor(str_replace_all(company_size, " employees", ""),
        subtitle = "Number of employees",
        x = "Company Size",
        y = "Count")
+chisq.test(pt_info$company_size, pt_info$Condition)
+
 
 ggplot(pt_info, aes(x = factor(experience,
                                levels = c("Less than 1 year",
@@ -296,6 +298,7 @@ ggplot(pt_info, aes(x = factor(experience,
        subtitle = "",
        x = "Years of Experience",
        y = "Count")
+chisq.test(pt_info$experience, pt_info$Condition)
 
 
 ggplot(pt_info, aes(x = risk))+
@@ -309,7 +312,81 @@ ggplot(pt_info, aes(x = risk))+
 
 ```
 
+```{r randomization check}
 
+pt_info_dt <- data.table(pt_info)
+
+# check for gender treatment
+pt_info_dt[, applicant_gender_bin := ifelse(Condition == "Man_Traditional" | Condition == "Man_Nontraditional", 
+                                            0, 1)]
+null_gender_mod <- pt_info_dt[, lm(applicant_gender_bin ~ 1)]
+full_gender_mod <- pt_info_dt[ , lm(applicant_gender_bin ~ 1 + 
+                                      age + 
+                                      gender + 
+                                      company_size + 
+                                      factor(experience,
+                                             levels = c("Less than 1 year",
+                                                        "1-2 years",
+                                                        "3-5 years",
+                                                        "5-10 years",
+                                                        "10+ years"))+
+                                      factor(str_replace_all(company_size, " employees", ""),
+                                             levels = c("Less than 50",
+                                                        "50-100",
+                                                        "100-500",
+                                                        "500-1,000",
+                                                        "1,000+"))
+)]
+anova(null_gender_mod, full_gender_mod)
+
+# check for education treatment
+pt_info_dt[, applicant_education_bin := ifelse(Condition == "Man_Traditional" | Condition == "Woman_Traditional", 
+                                            0, 1)]
+null_education_mod <- pt_info_dt[, lm(applicant_education_bin ~ 1)]
+full_education_mod <- pt_info_dt[, lm(applicant_education_bin ~ 1 + 
+                                      age + 
+                                      gender + 
+                                      company_size + 
+                                      factor(experience,
+                                             levels = c("Less than 1 year",
+                                                        "1-2 years",
+                                                        "3-5 years",
+                                                        "5-10 years",
+                                                        "10+ years"))+
+                                      factor(str_replace_all(company_size, " employees", ""),
+                                             levels = c("Less than 50",
+                                                        "50-100",
+                                                        "100-500",
+                                                        "500-1,000",
+                                                        "1,000+"))
+)]
+anova(null_education_mod, full_education_mod)
+
+# check for interaction treatment
+pt_info_dt[, applicant_interaction_bin := ifelse(Condition == "Woman_Nontraditional", 
+                                            1, 0)]
+null_interaction_mod <- pt_info_dt[, lm(applicant_interaction_bin ~ 1)]
+full_interaction_mod <- pt_info_dt[, lm(applicant_interaction_bin ~ 1 + 
+                                      age + 
+                                      gender + 
+                                      company_size + 
+                                      factor(experience,
+                                             levels = c("Less than 1 year",
+                                                        "1-2 years",
+                                                        "3-5 years",
+                                                        "5-10 years",
+                                                        "10+ years"))+
+                                      factor(str_replace_all(company_size, " employees", ""),
+                                             levels = c("Less than 50",
+                                                        "50-100",
+                                                        "100-500",
+                                                        "500-1,000",
+                                                        "1,000+"))
+)]
+anova(null_interaction_mod, full_interaction_mod)
+
+
+```
 
 ## Summary Stats
 
@@ -525,6 +602,8 @@ ggplot(analysis, aes(x = experience_scale))+
 d <- data.table(analysis)
 
 ```
+
+
 
 
 ### No Covariates - Baseline Model
