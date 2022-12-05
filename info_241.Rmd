@@ -361,6 +361,46 @@ ggplot(analysis, aes(x = rating))+
   theme(strip.text.y = element_text(angle = 0),
         legend.position = "none")
 
+#m_t
+ggplot(subset(analysis, Condition == 'Man_Traditional'), aes(x = rating))+
+  geom_bar(fill = m_t)+
+  labs(title = "Distributions of Resume Ratings: Man, Traditional",
+       x = "Rating",
+       y = "Count")+
+  geom_vline(xintercept = mean(subset(analysis, Condition == 'Man_Traditional')$rating), color = darkgray)+
+  theme(strip.text.y = element_text(angle = 0),
+        legend.position = "none")
+
+#w_t
+ggplot(subset(analysis, Condition == 'Woman_Traditional'), aes(x = rating))+
+  geom_bar(fill = w_t)+
+  labs(title = "Distributions of Resume Ratings: Woman, Traditional",
+       x = "Rating",
+       y = "Count")+
+  geom_vline(xintercept = mean(subset(analysis, Condition == 'Woman_Traditional')$rating), color = darkgray)+
+  theme(strip.text.y = element_text(angle = 0),
+        legend.position = "none")
+
+#m_nt
+ggplot(subset(analysis, Condition == 'Man_Traditional'), aes(x = rating))+
+  geom_bar(fill = m_nt)+
+  labs(title = "Distributions of Resume Ratings: Man, Non-Traditional",
+       x = "Rating",
+       y = "Count")+
+  geom_vline(xintercept = mean(subset(analysis, Condition == 'Man_Traditional')$rating), color = darkgray)+
+  theme(strip.text.y = element_text(angle = 0),
+        legend.position = "none")
+
+#w_nt
+ggplot(subset(analysis, Condition == 'Woman_Traditional'), aes(x = rating))+
+  geom_bar(fill = w_nt)+
+  labs(title = "Distributions of Resume Ratings: Woman, Non-Traditional",
+       x = "Rating",
+       y = "Count")+
+  geom_vline(xintercept = mean(subset(analysis, Condition == 'Woman_Traditional')$rating), color = darkgray)+
+  theme(strip.text.y = element_text(angle = 0),
+        legend.position = "none")
+
 ggplot(analysis, aes(y = rating, x = Condition))+
   geom_jitter(aes(color = Condition))+
   scale_fill_manual(values = color_scheme)+
@@ -657,8 +697,10 @@ stargazer(
 ```{r scale_comparisons}
 
 ggplot(subset(analysis, gender == "Man" | gender == "Woman"), aes(y = technical_scale, x = applicant_education))+
-  geom_jitter(aes(color = Condition), alpha = 0.8)+
-  geom_violin(alpha = 0.8, aes(fill = Condition))+
+  geom_jitter(aes(color = Condition), alpha = 0.5)+
+  geom_boxplot(alpha = 0.8, aes(fill = Condition))+
+  scale_fill_manual(values = color_scheme)+
+  scale_color_manual(values = color_scheme)+
   scale_x_discrete(labels = c("Traditional", "Non-Traditional"))+
   labs(title = "Comparison of Technical Ratings between Conditions",
        subtitle = "Grouped by Education & Participant Gender",
@@ -668,8 +710,10 @@ ggplot(subset(analysis, gender == "Man" | gender == "Woman"), aes(y = technical_
   facet_grid(~ gender)
 
 ggplot(subset(analysis, gender == "Man" | gender == "Woman"), aes(y = education_scale, x = applicant_education))+
-  geom_jitter(aes(color = Condition), alpha = 0.8)+
+  geom_jitter(aes(color = Condition), alpha = 0.5)+
   geom_boxplot(alpha = 0.8, aes(fill = Condition))+
+  scale_fill_manual(values = color_scheme)+
+  scale_color_manual(values = color_scheme)+
   scale_x_discrete(labels = c("Traditional", "Non-Traditional"))+
   labs(title = "Comparison of Relevant Education Ratings between Conditions",
        subtitle = "Grouped by Education & Participant Gender",
@@ -679,8 +723,10 @@ ggplot(subset(analysis, gender == "Man" | gender == "Woman"), aes(y = education_
   facet_grid(~ gender)
 
 ggplot(subset(analysis, gender == "Man" | gender == "Woman"), aes(y = experience_scale, x = applicant_gender))+
-  geom_jitter(aes(color = Condition), alpha = 0.8)+
+  geom_jitter(aes(color = Condition), alpha = 0.5)+
   geom_boxplot(alpha = 0.8, aes(fill = Condition))+
+  scale_fill_manual(values = color_scheme)+
+  scale_color_manual(values = color_scheme)+
   scale_x_discrete(labels = c("Man", "Woman"))+
   labs(title = "Comparison of Relevant Experience Ratings between Conditions",
        subtitle = "Grouped by Gender & Participant Gender",
@@ -691,7 +737,9 @@ ggplot(subset(analysis, gender == "Man" | gender == "Woman"), aes(y = experience
 
 ggplot(subset(analysis, gender == "Man" | gender == "Woman"), aes(y = rating, x = applicant_gender))+
   geom_jitter(aes(color = gender), alpha = 0.8)+
+  scale_color_manual(values = c(m_t, w_t))+
   geom_boxplot(alpha = 0.8, aes(fill = gender))+
+  scale_fill_manual(values = c(m_t, w_t))+
   facet_grid(.~ gender)
 
 
