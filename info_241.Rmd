@@ -603,9 +603,6 @@ d <- data.table(analysis)
 
 ```
 
-
-
-
 ### No Covariates - Baseline Model
 
 ```{r testing without covariates}
@@ -777,6 +774,7 @@ stargazer(
 )
 
 ```
+
 
 ## Follow-up Visualizations
 
