@@ -19,12 +19,11 @@ library(gridExtra)
 theme_set(theme_minimal())
 
 # set up color scheme
-w_nt <- "#C97137"
-w_t <- "#E0B190"
-m_nt <- "#3F6BA5"
-m_t <- "#97B3D8"
-color_scheme <- c(m_nt, m_t, w_nt, w_t)
-
+m_nt <- "#C97137"
+m_t <- "#E0B190"
+w_nt <- "#3F6BA5"
+w_t <- "#97B3D8"
+color_scheme <- c(m_t, m_nt, w_t, w_nt)
 ```
 
 
@@ -55,7 +54,7 @@ df$risk <- rowMeans(df %>% select(contains("risk")))
 
 # make list of columns for participant information
 participant_columns <- c('pt', 'age', 'gender', 'gender_5_TEXT', 'employment', 'role', 'company_size', 'experience', 'roles', 'industry', 'industry_12_TEXT', "risk", "Condition")
-participant_columns_remove <- c('gender_5_TEXT', 'employment', 'role', 'experience', 'roles', 'industry', 'industry_12_TEXT')
+participant_columns_remove <- c('gender_5_TEXT', 'employment', 'role', 'roles', 'industry', 'industry_12_TEXT')
 
 # make participant information df
 pt_info <- select(df, all_of(participant_columns))
@@ -126,7 +125,7 @@ analysis <- analysis %>%
   )
 
 # create reference condition for analyses
-analysis$Condition <- relevel(factor(analysis$Condition), ref = "Man_Traditional")
+analysis$Condition <- factor(analysis$Condition, levels = c("Man_Traditional", "Man_Nontraditional", "Woman_Traditional", "Woman_Nontraditional"))
 analysis$applicant_gender <- relevel(factor(analysis$applicant_gender), ref = "man")
 analysis$applicant_education <- relevel(factor(analysis$applicant_education), ref = "trad")
 
@@ -395,8 +394,6 @@ Here, we examine some basic information about how ratings for different applican
 
 ```{r summary stats}
 
-color_scheme <- c(w_t, w_nt, m_nt, m_t)
-
 average_ratings <- analysis %>% 
   group_by(Condition) %>% 
   summarise(avg_rating = mean(rating),
@@ -441,54 +438,15 @@ ggplot(analysis, aes(x = rating))+
   theme(strip.text.y = element_text(angle = 0),
         legend.position = "none")
 
-#m_t
-ggplot(subset(analysis, Condition == 'Man_Traditional'), aes(x = rating))+
-  geom_bar(fill = m_t)+
-  labs(title = "Distributions of Resume Ratings: Man, Traditional",
-       x = "Rating",
-       y = "Count")+
-  geom_vline(xintercept = mean(subset(analysis, Condition == 'Man_Traditional')$rating), color = darkgray)+
-  theme(strip.text.y = element_text(angle = 0),
-        legend.position = "none")
-
-#w_t
-ggplot(subset(analysis, Condition == 'Woman_Traditional'), aes(x = rating))+
-  geom_bar(fill = w_t)+
-  labs(title = "Distributions of Resume Ratings: Woman, Traditional",
-       x = "Rating",
-       y = "Count")+
-  geom_vline(xintercept = mean(subset(analysis, Condition == 'Woman_Traditional')$rating), color = darkgray)+
-  theme(strip.text.y = element_text(angle = 0),
-        legend.position = "none")
-
-#m_nt
-ggplot(subset(analysis, Condition == 'Man_Traditional'), aes(x = rating))+
-  geom_bar(fill = m_nt)+
-  labs(title = "Distributions of Resume Ratings: Man, Non-Traditional",
-       x = "Rating",
-       y = "Count")+
-  geom_vline(xintercept = mean(subset(analysis, Condition == 'Man_Traditional')$rating), color = darkgray)+
-  theme(strip.text.y = element_text(angle = 0),
-        legend.position = "none")
-
-#w_nt
-ggplot(subset(analysis, Condition == 'Woman_Traditional'), aes(x = rating))+
-  geom_bar(fill = w_nt)+
-  labs(title = "Distributions of Resume Ratings: Woman, Non-Traditional",
-       x = "Rating",
-       y = "Count")+
-  geom_vline(xintercept = mean(subset(analysis, Condition == 'Woman_Traditional')$rating), color = darkgray)+
-  theme(strip.text.y = element_text(angle = 0),
-        legend.position = "none")
-
 ggplot(analysis, aes(x = rating, y = Condition))+
+  scale_y_discrete(limits = c("Man_Traditional", "Man_Nontraditional", "Woman_Traditional", "Woman_Nontraditional"))+
   geom_jitter(aes(color = Condition))+
   scale_fill_manual(values = color_scheme)+
   scale_color_manual(values = color_scheme)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Traditional")$rating), color = w_t, linewidth = 1.25)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Traditional")$rating), color = m_t, linewidth = 1.25)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Nontraditional")$rating), color = w_nt, linewidth = 1.25)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Nontraditional")$rating), color = m_nt, linewidth = 1.25, alpha = 0.5)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Traditional")$rating), color = w_t, linewidth = 1.5)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Traditional")$rating), color = m_t, linewidth = 1.5)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Nontraditional")$rating), color = w_nt, linewidth = 1.5)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Nontraditional")$rating), color = m_nt, linewidth = 1.5, alpha = 0.5)+
   geom_hline(yintercept = 5, color = lightgray, linewidth = 1.25)+
   theme(legend.position = "none")+
   labs(title = "Distribution of Ratings by Condition",
@@ -498,114 +456,89 @@ ggplot(analysis, aes(x = rating, y = Condition))+
 
 ```{r scale_summaries}
 
-# ## technical scale
-# analysis %>%
-#   group_by(Condition) %>% 
-#   summarise(mean_technical= mean(technical_scale))
-technical <- ggplot(analysis, aes(x = technical_scale, y = Condition))+
+## technical scale
+ggplot(analysis, aes(x = technical_scale, y = Condition))+
   geom_jitter(aes(color = Condition))+
   scale_fill_manual(values = color_scheme)+
   scale_color_manual(values = color_scheme)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Traditional")$technical_scale), color = w_t)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Traditional")$technical_scale), color = m_t)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Nontraditional")$technical_scale), color = w_nt)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Nontraditional")$technical_scale), color = m_nt)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Traditional")$technical_scale), color = w_t, linewidth = 1.5)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Traditional")$technical_scale), color = m_t, linewidth = 1.5)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Nontraditional")$technical_scale), color = w_nt, linewidth = 1.5)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Nontraditional")$technical_scale), color = m_nt, linewidth = 1.5)+
   labs(title = "Technical Scale Ratings",
        x = "Rating",
        y = "Condition")+
-  theme(legend.position = "none", plot.title = element_text(size=22))
+  theme(legend.position = "none", plot.title = element_text(size=22), axis.text.y=element_blank())
 
-# ## leadership scale
-# analysis %>%
-#   group_by(Condition) %>% 
-#   summarise(mean_leadership= mean(leadership_scale))
-leadership <- ggplot(analysis, aes(x = leadership_scale, y = Condition))+
+## leadership scale
+ggplot(analysis, aes(x = leadership_scale, y = Condition))+
   geom_jitter(aes(color = Condition))+
   scale_fill_manual(values = color_scheme)+
   scale_color_manual(values = color_scheme)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Traditional")$leadership_scale), color = w_t)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Traditional")$leadership_scale), color = m_t)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Nontraditional")$leadership_scale), color = w_nt)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Nontraditional")$leadership_scale), color = m_nt)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Traditional")$leadership_scale), color = w_t, linewidth = 1.5)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Traditional")$leadership_scale), color = m_t, linewidth = 1.5)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Nontraditional")$leadership_scale), color = w_nt, linewidth = 1.5)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Nontraditional")$leadership_scale), color = m_nt, linewidth = 1.5)+
   labs(title = "Leadership Scale Ratings",
        x = "Rating",
        y = "Condition")+
   theme(legend.position = "none", plot.title = element_text(size=22), axis.text.y=element_blank())
 
-# ## likeable scale
-# analysis %>%
-#   group_by(Condition) %>% 
-#   summarise(mean_likeable = mean(likeable_scale))
-likeable <- ggplot(analysis, aes(x = likeable_scale, y = Condition))+
+## likeable scale
+ggplot(analysis, aes(x = likeable_scale, y = Condition))+
   geom_jitter(aes(color = Condition))+
   scale_fill_manual(values = color_scheme)+
   scale_color_manual(values = color_scheme)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Traditional")$likeable_scale), color = w_t)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Traditional")$likeable_scale), color = m_t)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Nontraditional")$likeable_scale), color = w_nt)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Nontraditional")$likeable_scale), color = m_nt)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Traditional")$likeable_scale), color = w_t, linewidth = 1.5)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Traditional")$likeable_scale), color = m_t, linewidth = 1.5)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Nontraditional")$likeable_scale), color = w_nt, linewidth = 1.5)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Nontraditional")$likeable_scale), color = m_nt, linewidth = 1.5)+
   labs(title = "Likeable Scale Ratings",
        x = "Rating",
        y = "Condition")+
-  theme(legend.position = "none", plot.title = element_text(size=22))
+  theme(legend.position = "none", plot.title = element_text(size=22), axis.text.y=element_blank())
 
-# ## learner scale
-# analysis %>%
-#   group_by(Condition) %>% 
-#   summarise(mean_learner = mean(learner_scale))
-learner <- ggplot(analysis, aes(x = learner_scale, y = Condition))+
+## learner scale
+ggplot(analysis, aes(x = learner_scale, y = Condition))+
   geom_jitter(aes(color = Condition))+
   scale_fill_manual(values = color_scheme)+
   scale_color_manual(values = color_scheme)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Traditional")$learner_scale), color = w_t)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Traditional")$learner_scale), color = m_t)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Nontraditional")$learner_scale), color = w_nt)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Nontraditional")$learner_scale), color = m_nt)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Traditional")$learner_scale), color = w_t, linewidth = 1.5)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Traditional")$learner_scale), color = m_t, linewidth = 1.5)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Nontraditional")$learner_scale), color = w_nt, linewidth = 1.5)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Nontraditional")$learner_scale), color = m_nt, linewidth = 1.5)+
   labs(title = "Learner Scale Ratings",
        x = "Rating",
        y = "Condition")+
   theme(legend.position = "none", plot.title = element_text(size=22), axis.text.y=element_blank())
 
-# ## education scale
-# analysis %>%
-#   group_by(Condition) %>% 
-#   summarise(mean_education = mean(education_scale))
-education <- ggplot(analysis, aes(x = education_scale, y = Condition))+
+## education scale
+ggplot(analysis, aes(x = education_scale, y = Condition))+
   geom_jitter(aes(color = Condition))+
   scale_fill_manual(values = color_scheme)+
   scale_color_manual(values = color_scheme)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Traditional")$education_scale), color = w_t)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Traditional")$education_scale), color = m_t)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Nontraditional")$education_scale), color = w_nt)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Nontraditional")$education_scale), color = m_nt)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Traditional")$education_scale), color = w_t, linewidth = 1.5)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Traditional")$education_scale), color = m_t, linewidth = 1.5)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Nontraditional")$education_scale), color = w_nt, linewidth = 1.5)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Nontraditional")$education_scale), color = m_nt, linewidth = 1.5)+
   labs(title = "Education Scale Ratings",
-       x = "Rating",
-       y = "Condition")+
-  theme(legend.position = "none", plot.title = element_text(size=22))
-
-# ## experience scale
-# analysis %>%
-#   group_by(Condition) %>% 
-#   summarise(mean_experience= mean(experience_scale))
-experience <- ggplot(analysis, aes(x = experience_scale, y = Condition))+
-  geom_jitter(aes(color = Condition))+
-  scale_fill_manual(values = color_scheme)+
-  scale_color_manual(values = color_scheme)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Traditional")$experience_scale), color = w_t)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Traditional")$experience_scale), color = m_t)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Nontraditional")$experience_scale), color = w_nt)+
-  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Nontraditional")$experience_scale), color = m_nt)+
-  labs(title = "Experience Scale Ratings",
        x = "Rating",
        y = "Condition")+
   theme(legend.position = "none", plot.title = element_text(size=22), axis.text.y=element_blank())
 
-technical
-leadership
-likeable
-learner
-education
-experience
+## experience scale
+ggplot(analysis, aes(x = experience_scale, y = Condition))+
+  geom_jitter(aes(color = Condition))+
+  scale_fill_manual(values = color_scheme)+
+  scale_color_manual(values = color_scheme)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Traditional")$experience_scale), color = w_t, linewidth = 1.5)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Traditional")$experience_scale), color = m_t, linewidth = 1.5)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Nontraditional")$experience_scale), color = w_nt, linewidth = 1.5)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Nontraditional")$experience_scale), color = m_nt, linewidth = 1.5)+
+  labs(title = "Experience Scale Ratings",
+       x = "Rating",
+       y = "Condition")+
+  theme(legend.position = "none", plot.title = element_text(size=22), axis.text.y=element_blank())
 
 
 ```
@@ -615,12 +548,13 @@ experience
 ```{r data table}
 
 d <- data.table(analysis)
+d <- d[gender == "Man" | gender == "Woman"]
 
 ```
 
-### No Covariates - Baseline Model
+### ANOVA
 
-```{r testing without covariates}
+```{r anova}
 
 ## anova testing
 summary(d[, aov(rating ~ Condition)])
@@ -628,36 +562,19 @@ summary(d[, aov(rating ~ Condition)])
 ## follow-up t-tests, holm correction
 d[, pairwise.t.test(rating, Condition, p.adjust.method = "bonferroni")]
 
-## linear model
-m0 <- d[, lm(rating ~ Condition)]
-
-# test for heteroscedasticity to determine if use of robust standard errors is justified
-par(mfrow = c(2, 2))
-plot(m0)
-bptest(m0)
-
-m0$vcovHC_ <- vcovHC(m0)
-coefs_conditions <- coeftest(m0, vcov. = m0$vcovHC_)
-coefs_conditions
-ci_conditions <- coefci(m0, vcov. = m0$vcovHC_)
-ci_conditions
-
 ```
 
 Based on the previous tests, we can detect that there *are* significant differences between conditions. This result is shown in the `ANOVA` test, for which post hoc testing indicates differences between the `Woman_Traditional` condition and the conditions `Man_Nontraditional` and `Woman_Nontraditional`. We follow this testing with linear models to more clearly capture the quantitative differences between ratings. 
 
-Specifically, the baseline candidate received a rating, on average of `r round(coefs_conditions[1], 2)` (`r round(ci_conditions, 2)[1,]`). In comparison, men with a nontraditional education were rated lower, by an average of `r round(coefs_conditions[2], 2)` (`r round(ci_conditions, 2)[2,]`). Women with a nontraditional education were also reated lower than men with a traditional education, by an average of `r round(coefs_conditions[3], 2)` (`r round(ci_conditions, 2)[3,]`). Finally, women with a traditional education were actually rated *higher* than men with a traditional education, by an average of `r round(coefs_conditions[4], 2)` (`r round(ci_conditions, 2)[4,]`).
+### No Covariates - Baseline Model
 
-### Applicant Attributes
+The previous analysis focused specifically on the conditions shown. We are also interested in the qualities of these conditions, such as the `applicant_gender` & `applicant_education` variables. This will give us a clearer statistical understanding of the input of each quality of the applicant. At this point forward, we use linear models, rather than ANOVA and t-testing. This is to make the content more consistent with the techniques learned in the course.
 
-The previous analysis focused specifically on the conditions shown. we are also interested in the qualities of these conditions, such as the `applicant_gender` & `applicant_education` variables. This will give us a clearer statistical understanding of the input of each quality of the applicant. At this point forward, we use linear models, rather than ANOVA and t-testing. This is to make the content more consistent with the techniques learned in the course.
+```{r baseline}
 
-```{r attributes}
-
-m1 <- d[gender == "Man" | gender == "Woman", lm(rating ~ applicant_gender * applicant_education)]
+m1 <- d[, lm(rating ~ applicant_gender * applicant_education)]
 
 # test for heteroscedasticity to determine if use of robust standard errors is justified
-par(mfrow = c(2, 2))
 plot(m1)
 bptest(m1)
 
@@ -674,10 +591,9 @@ In this case, we observe a significant effect of gender overall, but in the oppo
 
 ```{r adding risk aversion}
 
-m2 <- d[gender == "Man" | gender == "Woman", lm(rating ~ applicant_gender * applicant_education + risk)]
+m2 <- d[, lm(rating ~ applicant_gender * applicant_education + risk)]
 
 # test for heteroscedasticity to determine if use of robust standard errors is justified
-par(mfrow = c(2, 2))
 plot(m2)
 bptest(m2)
 
@@ -694,7 +610,7 @@ We add risk aversion scores to the model to capture individual differences in re
 
 ```{r adding participant gender}
 
-m3 <- d[, lm(rating ~ applicant_gender * applicant_education + risk + applicant_gender * factor(gender, levels = c("Man", "Woman")))]
+m3 <- d[, lm(rating ~ applicant_gender * applicant_education + risk + applicant_gender * factor(gender))]
 
 # test for heteroscedasticity to determine if use of robust standard errors is justified
 par(mfrow = c(2, 2))
@@ -715,11 +631,10 @@ ci_gender
 ```{r adding company size}
 
 m4 <- d[, lm(rating ~ applicant_gender * applicant_education + risk + 
-               applicant_gender * factor(gender, levels = c("Man", "Woman"))+
+               applicant_gender * factor(gender)+
                factor(company_size))]
 
 # test for heteroscedasticity to determine if use of robust standard errors is justified
-par(mfrow = c(2, 2))
 plot(m4)
 bptest(m4)
 
@@ -731,37 +646,33 @@ ci_company
 
 ```
 
+### Add Years of Experience
 
-### Add Scale Measures
+```{r adding experience}
 
-```{r adding scale measures}
 
 m5 <- d[, lm(rating ~ applicant_gender * applicant_education + risk + 
-               applicant_gender * factor(gender, levels = c("Man", "Woman"))+
+               applicant_gender * factor(gender)+
                factor(company_size) +
-               technical_scale +
-               leadership_scale +
-               likeable_scale +
-               learner_scale +
-               education_scale +
-               experience_scale)]
+               factor(experience))]
 
 # test for heteroscedasticity to determine if use of robust standard errors is justified
-par(mfrow = c(2, 2))
 plot(m5)
 bptest(m5)
 
 m5$vcovHC_ <- vcovHC(m5)
-coefs_measures <- coeftest(m5, vcov. = m5$vcovHC_)
-coefs_measures
-ci_measures <- coefci(m5, vcov. = m5$vcovHC_)
-ci_measures
+coefs_experience <- coeftest(m5, vcov. = m5$vcovHC_)
+coefs_experience
+ci_experience <- coefci(m5, vcov. = m5$vcovHC_)
+ci_experience
 
 ```
 
+Now that we have included all covariates, we can interpret this model & examine the role of applicant gender and education, as well as the role of the various covariates.
+
 ### Model Comparison
 
-```{r anova}
+```{r model_anova}
 
 anova(m1, m2, m3, m4, m5)
 
@@ -790,49 +701,169 @@ stargazer(
 
 ```
 
+### Predict Scale Measures
 
-## Follow-up Visualizations
+We also collected scale responses to indicate further which aspects of an applicant may be supporting the rating provided. Here, we conduct **exploratory** analysis to examine how the factors of an application may also influence the ratings of these scales. In this case, we do not examine covariates. This is to limit the amount of significance testing performed in these exploratory models. We do not state any causal claims, but rather use these models to indicate possible explanations for differences in overall ratings between different genders and education backgrounds.
 
-```{r scale_comparisons}
+```{r technical_scale}
 
-ggplot(subset(analysis, gender == "Man" | gender == "Woman"), aes(y = technical_scale, x = applicant_education))+
+m_technical <- d[, lm(technical_scale ~ applicant_gender * applicant_education)]
+
+m_technical$vcovHC_ <- vcovHC(m_technical)
+coefs_technical <- coeftest(m_technical, vcov. = m_technical$vcovHC_)
+coefs_technical
+
+ggplot(analysis, aes(y = technical_scale, x = applicant_education))+
   geom_jitter(aes(color = Condition), alpha = 0.5)+
   geom_boxplot(alpha = 0.8, aes(fill = Condition))+
   scale_fill_manual(values = color_scheme)+
   scale_color_manual(values = color_scheme)+
   scale_x_discrete(labels = c("Traditional", "Non-Traditional"))+
   labs(title = "Comparison of Technical Ratings between Conditions",
-       subtitle = "Grouped by Education & Participant Gender",
        y = "Technical Scale Rating\n",
        x = "\nApplicant Education")+
-  theme(legend.position = "none")+
-  facet_grid(~ gender)
+  theme(legend.position = "none")
 
-ggplot(subset(analysis, gender == "Man" | gender == "Woman"), aes(y = education_scale, x = applicant_education))+
+```
+
+
+```{r leadership_scale}
+
+m_leadership <- d[, lm(leadership_scale ~ applicant_gender * applicant_education)]
+
+m_leadership$vcovHC_ <- vcovHC(m_leadership)
+coefs_leadership <- coeftest(m_leadership, vcov. = m_leadership$vcovHC_)
+coefs_leadership
+
+ggplot(analysis, aes(y = leadership_scale, x = applicant_education))+
+  geom_jitter(aes(color = Condition), alpha = 0.5)+
+  geom_boxplot(alpha = 0.8, aes(fill = Condition))+
+  scale_fill_manual(values = color_scheme)+
+  scale_color_manual(values = color_scheme)+
+  scale_x_discrete(labels = c("Traditional", "Non-Traditional"))+
+  labs(title = "Comparison of Leadership Ratings between Conditions",
+       y = "Leadership Scale Rating\n",
+       x = "\nApplicant Education")+
+  theme(legend.position = "none")
+
+```
+
+
+```{r likeable_scale}
+
+m_likeable <- d[, lm(likeable_scale ~ applicant_gender * applicant_education)]
+
+m_likeable$vcovHC_ <- vcovHC(m_likeable)
+coefs_likeable <- coeftest(m_likeable, vcov. = m_likeable$vcovHC_)
+coefs_likeable
+
+ggplot(analysis, aes(y = likeable_scale, x = applicant_education))+
+  geom_jitter(aes(color = Condition), alpha = 0.5)+
+  geom_boxplot(alpha = 0.8, aes(fill = Condition))+
+  scale_fill_manual(values = color_scheme)+
+  scale_color_manual(values = color_scheme)+
+  scale_x_discrete(labels = c("Traditional", "Non-Traditional"))+
+  labs(title = "Comparison of Likeability Ratings between Conditions",
+       y = "Likeability Scale Rating\n",
+       x = "\nApplicant Education")+
+  theme(legend.position = "none")
+
+```
+
+
+```{r learner_scale}
+
+m_learner <- d[, lm(learner_scale ~ applicant_gender * applicant_education)]
+
+m_learner$vcovHC_ <- vcovHC(m_learner)
+coefs_learner <- coeftest(m_learner, vcov. = m_learner$vcovHC_)
+coefs_learner
+
+ggplot(analysis, aes(y = learner_scale, x = applicant_education))+
+  geom_jitter(aes(color = Condition), alpha = 0.5)+
+  geom_boxplot(alpha = 0.8, aes(fill = Condition))+
+  scale_fill_manual(values = color_scheme)+
+  scale_color_manual(values = color_scheme)+
+  scale_x_discrete(labels = c("Traditional", "Non-Traditional"))+
+  labs(title = "Comparison of Quick Learner Ratings between Conditions",
+       y = "Quick Learner Scale Rating\n",
+       x = "\nApplicant Education")+
+  theme(legend.position = "none")
+
+```
+
+
+```{r education_scale}
+
+m_education <- d[, lm(education_scale ~ applicant_gender * applicant_education)]
+
+m_education$vcovHC_ <- vcovHC(m_education)
+coefs_education <- coeftest(m_education, vcov. = m_education$vcovHC_)
+coefs_education
+
+ggplot(analysis, aes(y = education_scale, x = applicant_education))+
   geom_jitter(aes(color = Condition), alpha = 0.5)+
   geom_boxplot(alpha = 0.8, aes(fill = Condition))+
   scale_fill_manual(values = color_scheme)+
   scale_color_manual(values = color_scheme)+
   scale_x_discrete(labels = c("Traditional", "Non-Traditional"))+
   labs(title = "Comparison of Relevant Education Ratings between Conditions",
-       subtitle = "Grouped by Education & Participant Gender",
-       y = "Education Scale Rating\n",
+       y = "Relevant Education Scale Rating\n",
        x = "\nApplicant Education")+
-  theme(legend.position = "none")+
-  facet_grid(~ gender)
+  theme(legend.position = "none")
 
-ggplot(subset(analysis, gender == "Man" | gender == "Woman"), aes(y = experience_scale, x = applicant_gender))+
+```
+
+
+```{r experience_scale}
+
+m_experience <- d[, lm(experience_scale ~ applicant_gender * applicant_education)]
+
+m_experience$vcovHC_ <- vcovHC(m_experience)
+coefs_experience <- coeftest(m_experience, vcov. = m_experience$vcovHC_)
+coefs_experience
+
+ggplot(analysis, aes(y = experience_scale, x = applicant_education))+
   geom_jitter(aes(color = Condition), alpha = 0.5)+
   geom_boxplot(alpha = 0.8, aes(fill = Condition))+
   scale_fill_manual(values = color_scheme)+
   scale_color_manual(values = color_scheme)+
-  scale_x_discrete(labels = c("Man", "Woman"))+
+  scale_x_discrete(labels = c("Traditional", "Non-Traditional"))+
   labs(title = "Comparison of Relevant Experience Ratings between Conditions",
-       subtitle = "Grouped by Gender & Participant Gender",
-       y = "Experience Scale Rating\n",
-       x = "\nApplicant Gender")+
-  theme(legend.position = "none")+
-  facet_grid(~ gender)
+       y = "Relevant Experience Scale Rating\n",
+       x = "\nApplicant Education")+
+  theme(legend.position = "none")
+
+```
+
+
+```{r stargazer_scales}
+
+stargazer(
+  m_technical, 
+  m_leadership,
+  m_likeable,
+  m_learner,
+  m_education,
+  m_experience,
+  type = 'html',
+  se = list(sqrt(diag(m_technical$vcovHC_)),
+            sqrt(diag(m_leadership$vcovHC_)),
+            sqrt(diag(m_likeable$vcovHC_)),
+            sqrt(diag(m_learner$vcovHC_)),
+            sqrt(diag(m_education$vcovHC_)),
+            sqrt(diag(m_experience$vcovHC_))
+  ),
+ # header=FALSE,
+  single.row = TRUE, 
+  no.space = TRUE 
+)
+
+```
+
+## Other Visualizations
+
+```{r participant gender}
 
 ggplot(subset(analysis, gender == "Man" | gender == "Woman"), aes(y = rating, x = applicant_gender))+
   geom_jitter(aes(color = gender), alpha = 0.8)+
@@ -840,7 +871,6 @@ ggplot(subset(analysis, gender == "Man" | gender == "Woman"), aes(y = rating, x 
   geom_boxplot(alpha = 0.8, aes(fill = gender))+
   scale_fill_manual(values = c(m_t, w_t))+
   facet_grid(.~ gender)
-
 
 ```
 

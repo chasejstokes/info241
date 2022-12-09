@@ -10,7 +10,19 @@
 
 <body>
 
-    <table style="text-align:center; width:100%">
+    <style>
+        .significant {
+            background-color: rgb(254, 248, 187);
+        }
+    </style>
+    <div>
+        One of our covariates is the participant's self-reported gender, and only 28 of our participants reported a
+        gender
+        other than “man” or “woman”. In order to avoid making comparisons with covariates of an extremely low relative
+        sample size, we reduce analysis to only participants who responded “Man” or “Woman”.
+    </div>
+
+    <table style="text-align:center; width: 100%">
         <tr>
             <td colspan="6" style="border-bottom: 1px solid black"></td>
         </tr>
@@ -24,7 +36,7 @@
         </tr>
         <tr>
             <td style="text-align:left"></td>
-            <td colspan="5">rating</td>
+            <td colspan="5">Rating</td>
         </tr>
         <tr>
             <td style="text-align:left"></td>
@@ -39,139 +51,123 @@
         </tr>
         <tr>
             <td style="text-align:left">Applicant Gender: Woman</td>
-            <td>0.324<sup>**</sup> (0.144)</td>
-            <td>0.323<sup>**</sup> (0.144)</td>
-            <td>0.443<sup>***</sup> (0.155)</td>
-            <td>0.461<sup>***</sup> (0.152)</td>
-            <td>0.155 (0.121)</td>
+            <td class=significant>0.324<sup>**</sup> <br> (0.144)</td>
+            <td class=significant>0.323<sup>**</sup> <br> (0.144)</td>
+            <td class=significant>0.443<sup>***</sup> <br> (0.155)</td>
+            <td class=significant>0.461<sup>***</sup> <br> (0.152)</td>
+            <td class=significant>0.427<sup>***</sup> <br> (0.152)</td>
         </tr>
         <tr>
-            <td style="text-align:left">Applicant Education: Non-Traditional</td>
-            <td>-0.447<sup>***</sup> (0.157)</td>
-            <td>-0.448<sup>***</sup> (0.157)</td>
-            <td>-0.446<sup>***</sup> (0.157)</td>
-            <td>-0.453<sup>***</sup> (0.157)</td>
-            <td>-0.063 (0.126)</td>
+            <td style="text-align:left">Applicant Education: Nontraditional</td>
+            <td class=significant>-0.447<sup>***</sup> <br> (0.157)</td>
+            <td class=significant>-0.448<sup>***</sup> <br> (0.157)</td>
+            <td class=significant>-0.446<sup>***</sup> <br> (0.157)</td>
+            <td class=significant>-0.453<sup>***</sup> <br> (0.157)</td>
+            <td class=significant>-0.473<sup>***</sup> <br> (0.158)</td>
         </tr>
         <tr>
             <td style="text-align:left">Risk Aversion Score</td>
             <td></td>
-            <td>-0.049 (0.071)</td>
-            <td>-0.027 (0.072)</td>
-            <td>-0.021 (0.072)</td>
-            <td>-0.025 (0.056)</td>
+            <td>-0.049 <br> (0.071)</td>
+            <td>-0.027 <br> (0.072)</td>
+            <td>-0.021 <br> (0.072)</td>
+            <td>-0.012 <br> (0.072)</td>
         </tr>
         <tr>
             <td style="text-align:left">Participant Gender: Woman</td>
             <td></td>
             <td></td>
-            <td>0.057 (0.183)</td>
-            <td>-0.003 (0.187)</td>
-            <td>-0.093 (0.155)</td>
+            <td>0.057 <br> (0.183)</td>
+            <td>-0.003 <br> (0.187)</td>
+            <td>-0.051 <br> (0.190)</td>
         </tr>
         <tr>
             <td style="text-align:left">Company Size: Less than 50 employees</td>
             <td></td>
             <td></td>
             <td></td>
-            <td>-0.130 (0.156)</td>
-            <td>0.113 (0.132)</td>
+            <td>-0.130 <br> (0.156)</td>
+            <td>-0.144 <br> (0.156)</td>
         </tr>
         <tr>
             <td style="text-align:left">Company Size: 50-100 employees</td>
             <td></td>
             <td></td>
             <td></td>
-            <td>-0.191 (0.227)</td>
-            <td>-0.265 (0.191)</td>
+            <td>-0.191 <br> (0.227)</td>
+            <td>-0.227 <br> (0.225)</td>
         </tr>
         <tr>
             <td style="text-align:left">Company Size: 100-500 employees</td>
             <td></td>
             <td></td>
             <td></td>
-            <td>-0.425<sup>***</sup> (0.160)</td>
-            <td>-0.133 (0.115)</td>
+            <td class=significant>-0.425<sup>***</sup> <br> (0.160)</td>
+            <td class=significant>-0.437<sup>***</sup> <br> (0.160)</td>
         </tr>
         <tr>
             <td style="text-align:left">Company Size: 500-1,000 employees</td>
             <td></td>
             <td></td>
             <td></td>
-            <td>0.148 (0.166)</td>
-            <td>0.094 (0.135)</td>
+            <td>0.148 <br> (0.166)</td>
+            <td>0.146 <br> (0.165)</td>
         </tr>
         <tr>
-            <td style="text-align:left">Technical Ability Rating</td>
+            <td style="text-align:left">Experience: Less than 1 year</td>
             <td></td>
             <td></td>
             <td></td>
             <td></td>
-            <td>0.362<sup>***</sup> (0.050)</td>
+            <td>0.052 <br> (0.192)</td>
         </tr>
         <tr>
-            <td style="text-align:left">Good Leadership Rating</td>
+            <td style="text-align:left">Experience: 3-5 years</td>
             <td></td>
             <td></td>
             <td></td>
             <td></td>
-            <td>0.050 (0.039)</td>
+            <td>0.214 <br> (0.159)</td>
         </tr>
         <tr>
-            <td style="text-align:left">Likeablity Rating</td>
+            <td style="text-align:left">Experience: 5-10 years</td>
             <td></td>
             <td></td>
             <td></td>
             <td></td>
-            <td>0.032 (0.042)</td>
+            <td>-0.008 <br> (0.176)</td>
         </tr>
         <tr>
-            <td style="text-align:left">Quick Learner Rating</td>
+            <td style="text-align:left">Experience: 10+ years</td>
             <td></td>
             <td></td>
             <td></td>
             <td></td>
-            <td>0.060 (0.043)</td>
+            <td>-0.089 <br> (0.173)</td>
         </tr>
         <tr>
-            <td style="text-align:left">Relevant Education Rating</td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td>0.103<sup>***</sup> (0.027)</td>
+            <td style="text-align:left">Applicant: Woman * Nontraditional</td>
+            <td class=significant>-0.423<sup>*</sup> <br> (0.225)</td>
+            <td class=significant>-0.409<sup>*</sup> <br> (0.227)</td>
+            <td class=significant>-0.425<sup>*</sup> <br> (0.227)</td>
+            <td class=significant>-0.402<sup>*</sup> <br> (0.231)</td>
+            <td>-0.381 <br> (0.233)</td>
         </tr>
         <tr>
-            <td style="text-align:left">Relevant Experience Rating</td>
+            <td style="text-align:left">Applicant: Woman * Participant: Woman</td>
             <td></td>
             <td></td>
-            <td></td>
-            <td></td>
-            <td>0.172<sup>***</sup> (0.044)</td>
-        </tr>
-        <tr>
-            <td style="text-align:left">Interaction: Woman, Non-traditional</td>
-            <td>-0.423<sup>*</sup> (0.225)</td>
-            <td>-0.409<sup>*</sup> (0.227)</td>
-            <td>-0.425<sup>*</sup> (0.227)</td>
-            <td>-0.402<sup>*</sup> (0.231)</td>
-            <td>-0.065 (0.177)</td>
-        </tr>
-        <tr>
-            <td style="text-align:left">Interaction: Applicant Woman & Participant Woman</td>
-            <td></td>
-            <td></td>
-            <td>-0.491<sup>*</sup> (0.284)</td>
-            <td>-0.474<sup>*</sup> (0.284)</td>
-            <td>-0.071 (0.233)</td>
+            <td class=significant>-0.491<sup>*</sup> <br> (0.284)</td>
+            <td class=significant>-0.474<sup>*</sup> <br> (0.284)</td>
+            <td>-0.433 <br> (0.284)</td>
         </tr>
         <tr>
             <td style="text-align:left">Constant</td>
-            <td>7.605<sup>***</sup> (0.094)</td>
-            <td>7.823<sup>***</sup> (0.329)</td>
-            <td>7.709<sup>***</sup> (0.331)</td>
-            <td>7.812<sup>***</sup> (0.329)</td>
-            <td>1.834<sup>***</sup> (0.425)</td>
+            <td>7.605<sup>***</sup> <br> (0.094)</td>
+            <td>7.823<sup>***</sup> <br> (0.329)</td>
+            <td>7.709<sup>***</sup> <br> (0.331)</td>
+            <td>7.812<sup>***</sup> <br> (0.329)</td>
+            <td>7.763<sup>***</sup> <br> (0.337)</td>
         </tr>
         <tr>
             <td colspan="6" style="border-bottom: 1px solid black"></td>
@@ -190,7 +186,7 @@
             <td>0.039</td>
             <td>0.044</td>
             <td>0.056</td>
-            <td>0.436</td>
+            <td>0.060</td>
         </tr>
         <tr>
             <td style="text-align:left">Adjusted R<sup>2</sup></td>
@@ -198,23 +194,23 @@
             <td>0.034</td>
             <td>0.037</td>
             <td>0.045</td>
-            <td>0.426</td>
+            <td>0.045</td>
         </tr>
         <tr>
             <td style="text-align:left">Residual Std. Error</td>
-            <td>1.713 (df = 912)</td>
-            <td>1.714 (df = 911)</td>
-            <td>1.711 (df = 909)</td>
-            <td>1.704 (df = 905)</td>
-            <td>1.321 (df = 899)</td>
+            <td>1.713 <br>(df = 912)</td>
+            <td>1.714 <br>(df = 911)</td>
+            <td>1.711 <br>(df = 909)</td>
+            <td>1.704 <br>(df = 905)</td>
+            <td>1.704 <br>(df = 901)</td>
         </tr>
         <tr>
             <td style="text-align:left">F Statistic</td>
-            <td>12.019<sup>***</sup> (df = 3; 912)</td>
-            <td>9.144<sup>***</sup> (df = 4; 911)</td>
-            <td>6.915<sup>***</sup> (df = 6; 909)</td>
-            <td>5.347<sup>***</sup> (df = 10; 905)</td>
-            <td>43.454<sup>***</sup> (df = 16; 899)</td>
+            <td>12.019<sup>***</sup> <br>(df = 3; 912)</td>
+            <td>9.144<sup>***</sup> <br>(df = 4; 911)</td>
+            <td>6.915<sup>***</sup> <br>(df = 6; 909)</td>
+            <td>5.347<sup>***</sup> <br>(df = 10; 905)</td>
+            <td>4.097<sup>***</sup> <br>(df = 14; 901)</td>
         </tr>
         <tr>
             <td colspan="6" style="border-bottom: 1px solid black"></td>
@@ -222,6 +218,134 @@
         <tr>
             <td style="text-align:left"><em>Note:</em></td>
             <td colspan="5" style="text-align:right"><sup>*</sup>p&lt;0.1; <sup>**</sup>p&lt;0.05;
+                <sup>***</sup>p&lt;0.01
+            </td>
+        </tr>
+    </table>
+
+    <table style="text-align:center; width: 100%">
+        <tr>
+            <td colspan="7" style="border-bottom: 1px solid black"></td>
+        </tr>
+        <tr>
+            <td style="text-align:left"></td>
+            <td colspan="6"><em>Dependent variable:</em></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td colspan="6" style="border-bottom: 1px solid black"></td>
+        </tr>
+        <tr>
+            <td style="text-align:left"></td>
+            <td>Technical</td>
+            <td>Good Leadership</td>
+            <td>Likeable</td>
+            <td>Quick Learner</td>
+            <td>Relevant Education</td>
+            <td>Relevant Experience</td>
+        </tr>
+        <tr>
+            <td style="text-align:left"></td>
+            <td>(1)</td>
+            <td>(2)</td>
+            <td>(3)</td>
+            <td>(4)</td>
+            <td>(5)</td>
+            <td>(6)</td>
+        </tr>
+        <tr>
+            <td colspan="7" style="border-bottom: 1px solid black"></td>
+        </tr>
+        <tr>
+            <td style="text-align:left">Applicant Gender: Woman</td>
+            <td>0.194 <br> (0.143)</td>
+            <td>0.094 <br> (0.186)</td>
+            <td class=significant>0.666<sup>***</sup> <br> (0.176)</td>
+            <td class=significant>0.337<sup>**</sup> <br> (0.163)</td>
+            <td>0.210 <br> (0.141)</td>
+            <td class=significant>0.320<sup>**</sup> <br> (0.148)</td>
+        </tr>
+        <tr>
+            <td style="text-align:left">Applicant Education: Nontraditional</td>
+            <td class=significant>-0.332<sup>**</sup> <br> (0.141)</td>
+            <td>-0.252 <br> (0.159)</td>
+            <td>-0.054 <br> (0.154)</td>
+            <td>-0.045 <br> (0.139)</td>
+            <td class=significant>-2.114<sup>***</sup> <br> (0.200)</td>
+            <td>-0.088 <br> (0.137)</td>
+        </tr>
+        <tr>
+            <td style="text-align:left">Applicant: Woman * Nontraditional</td>
+            <td class=significant>-0.456<sup>**</sup> <br> (0.219)</td>
+            <td>-0.087 <br> (0.249)</td>
+            <td>-0.260 <br> (0.233)</td>
+            <td>-0.337 <br> (0.221)</td>
+            <td>-0.292 <br> (0.294)</td>
+            <td class=significant>-0.796<sup>***</sup> <br> (0.217)</td>
+        </tr>
+        <tr>
+            <td style="text-align:left">Constant</td>
+            <td>7.765<sup>***</sup> <br>(0.085)</td>
+            <td>6.358<sup>***</sup> <br>(0.110)</td>
+            <td>6.527<sup>***</sup> <br>(0.108)</td>
+            <td>6.856<sup>***</sup> <br>(0.092)</td>
+            <td>7.988<sup>***</sup> <br>(0.095)</td>
+            <td>7.848<sup>***</sup> <br>(0.094)</td>
+        </tr>
+        <tr>
+            <td colspan="7" style="border-bottom: 1px solid black"></td>
+        </tr>
+        <tr>
+            <td style="text-align:left">Observations</td>
+            <td>916</td>
+            <td>916</td>
+            <td>916</td>
+            <td>916</td>
+            <td>916</td>
+            <td>916</td>
+        </tr>
+        <tr>
+            <td style="text-align:left">R<sup>2</sup></td>
+            <td>0.031</td>
+            <td>0.006</td>
+            <td>0.026</td>
+            <td>0.009</td>
+            <td>0.199</td>
+            <td>0.034</td>
+        </tr>
+        <tr>
+            <td style="text-align:left">Adjusted R<sup>2</sup></td>
+            <td>0.028</td>
+            <td>0.003</td>
+            <td>0.023</td>
+            <td>0.005</td>
+            <td>0.196</td>
+            <td>0.031</td>
+        </tr>
+        <tr>
+            <td style="text-align:left">Residual Std. Error (df = 912)</td>
+            <td>1.641</td>
+            <td>1.845</td>
+            <td>1.732</td>
+            <td>1.638</td>
+            <td>2.264</td>
+            <td>1.626</td>
+        </tr>
+        <tr>
+            <td style="text-align:left">F Statistic (df = 3; 912)</td>
+            <td>9.802<sup>***</sup></td>
+            <td>1.988</td>
+            <td>8.209<sup>***</sup></td>
+            <td>2.626<sup>**</sup></td>
+            <td>75.350<sup>***</sup></td>
+            <td>10.710<sup>***</sup></td>
+        </tr>
+        <tr>
+            <td colspan="7" style="border-bottom: 1px solid black"></td>
+        </tr>
+        <tr>
+            <td style="text-align:left"><em>Note:</em></td>
+            <td colspan="6" style="text-align:right"><sup>*</sup>p&lt;0.1; <sup>**</sup>p&lt;0.05;
                 <sup>***</sup>p&lt;0.01
             </td>
         </tr>
