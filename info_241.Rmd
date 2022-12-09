@@ -13,15 +13,16 @@ library(broom)
 library(data.table)
 library(tidyverse)
 library(stargazer)
+library(gridExtra)
 
 # set theme for ggplot
 theme_set(theme_minimal())
 
 # set up color scheme
-m_nt <- "#C97137"
-m_t <- "#E0B190"
-w_nt <- "#3F6BA5"
-w_t <- "#97B3D8"
+w_nt <- "#C97137"
+w_t <- "#E0B190"
+m_nt <- "#3F6BA5"
+m_t <- "#97B3D8"
 color_scheme <- c(m_nt, m_t, w_nt, w_t)
 
 ```
@@ -394,6 +395,8 @@ Here, we examine some basic information about how ratings for different applican
 
 ```{r summary stats}
 
+color_scheme <- c(w_t, w_nt, m_nt, m_t)
+
 average_ratings <- analysis %>% 
   group_by(Condition) %>% 
   summarise(avg_rating = mean(rating),
@@ -478,120 +481,132 @@ ggplot(subset(analysis, Condition == 'Woman_Traditional'), aes(x = rating))+
   theme(strip.text.y = element_text(angle = 0),
         legend.position = "none")
 
-ggplot(analysis, aes(y = rating, x = Condition))+
+ggplot(analysis, aes(x = rating, y = Condition))+
   geom_jitter(aes(color = Condition))+
   scale_fill_manual(values = color_scheme)+
   scale_color_manual(values = color_scheme)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Traditional")$rating), color = w_t, linewidth = 1.25)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Traditional")$rating), color = m_t, linewidth = 1.25)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Nontraditional")$rating), color = w_nt, linewidth = 1.25)+
+  geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Nontraditional")$rating), color = m_nt, linewidth = 1.25, alpha = 0.5)+
+  geom_hline(yintercept = 5, color = lightgray, linewidth = 1.25)+
   theme(legend.position = "none")+
   labs(title = "Distribution of Ratings by Condition",
-       y = "Rating")
+       x = "Rating")
 
 ```
 
 ```{r scale_summaries}
 
-## technical scale
-analysis %>%
-  group_by(Condition) %>% 
-  summarise(mean_technical= mean(technical_scale))
-ggplot(analysis, aes(x = technical_scale))+
-  geom_density(stat = "count",aes(fill = Condition), alpha = 0.8)+
+# ## technical scale
+# analysis %>%
+#   group_by(Condition) %>% 
+#   summarise(mean_technical= mean(technical_scale))
+technical <- ggplot(analysis, aes(x = technical_scale, y = Condition))+
+  geom_jitter(aes(color = Condition))+
   scale_fill_manual(values = color_scheme)+
+  scale_color_manual(values = color_scheme)+
   geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Traditional")$technical_scale), color = w_t)+
   geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Traditional")$technical_scale), color = m_t)+
   geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Nontraditional")$technical_scale), color = w_nt)+
   geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Nontraditional")$technical_scale), color = m_nt)+
-  labs(title = "Distribution of Technical Scale Ratings by Condition",
-       subtitle = "Vertical lines indicate group means",
+  labs(title = "Technical Scale Ratings",
        x = "Rating",
-       y = "Count")+
-  theme(legend.position = "none")
+       y = "Condition")+
+  theme(legend.position = "none", plot.title = element_text(size=22))
 
-## leadership scale
-analysis %>%
-  group_by(Condition) %>% 
-  summarise(mean_leadership= mean(leadership_scale))
-ggplot(analysis, aes(x = leadership_scale))+
-  geom_density(stat = "count",aes(fill = Condition), alpha = 0.8)+
+# ## leadership scale
+# analysis %>%
+#   group_by(Condition) %>% 
+#   summarise(mean_leadership= mean(leadership_scale))
+leadership <- ggplot(analysis, aes(x = leadership_scale, y = Condition))+
+  geom_jitter(aes(color = Condition))+
   scale_fill_manual(values = color_scheme)+
+  scale_color_manual(values = color_scheme)+
   geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Traditional")$leadership_scale), color = w_t)+
   geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Traditional")$leadership_scale), color = m_t)+
   geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Nontraditional")$leadership_scale), color = w_nt)+
   geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Nontraditional")$leadership_scale), color = m_nt)+
-  labs(title = "Distribution of Leadership Scale Ratings by Condition",
-       subtitle = "Vertical lines indicate group means",
+  labs(title = "Leadership Scale Ratings",
        x = "Rating",
-       y = "Count")+
-  theme(legend.position = "none")
+       y = "Condition")+
+  theme(legend.position = "none", plot.title = element_text(size=22), axis.text.y=element_blank())
 
-
-## likeable scale
-analysis %>%
-  group_by(Condition) %>% 
-  summarise(mean_likeable = mean(likeable_scale))
-ggplot(analysis, aes(x = likeable_scale))+
-  geom_density(stat = "count",aes(fill = Condition), alpha = 0.8)+
+# ## likeable scale
+# analysis %>%
+#   group_by(Condition) %>% 
+#   summarise(mean_likeable = mean(likeable_scale))
+likeable <- ggplot(analysis, aes(x = likeable_scale, y = Condition))+
+  geom_jitter(aes(color = Condition))+
   scale_fill_manual(values = color_scheme)+
+  scale_color_manual(values = color_scheme)+
   geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Traditional")$likeable_scale), color = w_t)+
   geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Traditional")$likeable_scale), color = m_t)+
   geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Nontraditional")$likeable_scale), color = w_nt)+
   geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Nontraditional")$likeable_scale), color = m_nt)+
-  labs(title = "Distribution of Likeable Scale Ratings by Condition",
-       subtitle = "Vertical lines indicate group means",
+  labs(title = "Likeable Scale Ratings",
        x = "Rating",
-       y = "Count")+
-  theme(legend.position = "none")
+       y = "Condition")+
+  theme(legend.position = "none", plot.title = element_text(size=22))
 
-## learner scale
-analysis %>%
-  group_by(Condition) %>% 
-  summarise(mean_learner = mean(learner_scale))
-ggplot(analysis, aes(x = learner_scale))+
-  geom_density(stat = "count",aes(fill = Condition), alpha = 0.8)+
+# ## learner scale
+# analysis %>%
+#   group_by(Condition) %>% 
+#   summarise(mean_learner = mean(learner_scale))
+learner <- ggplot(analysis, aes(x = learner_scale, y = Condition))+
+  geom_jitter(aes(color = Condition))+
   scale_fill_manual(values = color_scheme)+
+  scale_color_manual(values = color_scheme)+
   geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Traditional")$learner_scale), color = w_t)+
   geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Traditional")$learner_scale), color = m_t)+
   geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Nontraditional")$learner_scale), color = w_nt)+
   geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Nontraditional")$learner_scale), color = m_nt)+
-  labs(title = "Distribution of Learner Scale Ratings by Condition",
-       subtitle = "Vertical lines indicate group means",
+  labs(title = "Learner Scale Ratings",
        x = "Rating",
-       y = "Count")+
-  theme(legend.position = "none")
+       y = "Condition")+
+  theme(legend.position = "none", plot.title = element_text(size=22), axis.text.y=element_blank())
 
-## education scale
-analysis %>%
-  group_by(Condition) %>% 
-  summarise(mean_education = mean(education_scale))
-ggplot(analysis, aes(x = education_scale))+
-  geom_density(stat = "count",aes(fill = Condition), alpha = 0.8)+
+# ## education scale
+# analysis %>%
+#   group_by(Condition) %>% 
+#   summarise(mean_education = mean(education_scale))
+education <- ggplot(analysis, aes(x = education_scale, y = Condition))+
+  geom_jitter(aes(color = Condition))+
   scale_fill_manual(values = color_scheme)+
+  scale_color_manual(values = color_scheme)+
   geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Traditional")$education_scale), color = w_t)+
   geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Traditional")$education_scale), color = m_t)+
   geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Nontraditional")$education_scale), color = w_nt)+
   geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Nontraditional")$education_scale), color = m_nt)+
-  labs(title = "Distribution of Education Scale Ratings by Condition",
-       subtitle = "Vertical lines indicate group means",
+  labs(title = "Education Scale Ratings",
        x = "Rating",
-       y = "Count")+
-  theme(legend.position = "none")
+       y = "Condition")+
+  theme(legend.position = "none", plot.title = element_text(size=22))
 
-## experience scale
-analysis %>%
-  group_by(Condition) %>% 
-  summarise(mean_experience= mean(experience_scale))
-ggplot(analysis, aes(x = experience_scale))+
-  geom_density(stat = "count",aes(fill = Condition), alpha = 0.8)+
+# ## experience scale
+# analysis %>%
+#   group_by(Condition) %>% 
+#   summarise(mean_experience= mean(experience_scale))
+experience <- ggplot(analysis, aes(x = experience_scale, y = Condition))+
+  geom_jitter(aes(color = Condition))+
   scale_fill_manual(values = color_scheme)+
+  scale_color_manual(values = color_scheme)+
   geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Traditional")$experience_scale), color = w_t)+
   geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Traditional")$experience_scale), color = m_t)+
   geom_vline(xintercept = mean(subset(analysis, Condition == "Woman_Nontraditional")$experience_scale), color = w_nt)+
   geom_vline(xintercept = mean(subset(analysis, Condition == "Man_Nontraditional")$experience_scale), color = m_nt)+
-  labs(title = "Distribution of Experience Scale Ratings by Condition",
-       subtitle = "Vertical lines indicate group means",
+  labs(title = "Experience Scale Ratings",
        x = "Rating",
-       y = "Count")+
-  theme(legend.position = "none")
+       y = "Condition")+
+  theme(legend.position = "none", plot.title = element_text(size=22), axis.text.y=element_blank())
+
+technical
+leadership
+likeable
+learner
+education
+experience
+
 
 ```
 
