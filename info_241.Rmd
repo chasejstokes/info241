@@ -128,6 +128,7 @@ analysis <- analysis %>%
 analysis$Condition <- factor(analysis$Condition, levels = c("Man_Traditional", "Man_Nontraditional", "Woman_Traditional", "Woman_Nontraditional"))
 analysis$applicant_gender <- relevel(factor(analysis$applicant_gender), ref = "man")
 analysis$applicant_education <- relevel(factor(analysis$applicant_education), ref = "trad")
+analysis$experience <- relevel(factor(analysis$experience), ref = "10+ years")
 
 ```
 
@@ -651,11 +652,10 @@ ci_company
 
 ```{r adding experience}
 
-
 m5 <- d[, lm(rating ~ applicant_gender * applicant_education + risk + 
                applicant_gender * factor(gender)+
                factor(company_size) +
-               factor(experience))]
+               factor(experience) + age)]
 
 # test for heteroscedasticity to determine if use of robust standard errors is justified
 plot(m5)
